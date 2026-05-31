@@ -4,37 +4,39 @@
 
 @layer base {
   :root {
-    --editor-font-size: 14px;
-    --bg-primary: #1e1e1e;
-    --bg-secondary: #252526;
-    --bg-tertiary: #37373d;
-    --text-primary: #d4d4d4;
-    --text-muted: #858585;
-    /* --accent: #007acc; */
-    --accent: rgb(255, 123, 0);
-    --border: #3c3c3c;
-    --lock-color: #febc2e;
+    --editor-font-size: 14.5px;
+    --bg-primary: #09090b; /* Obsidian Black */
+    --bg-secondary: #18181b; /* Zinc 900 */
+    --bg-tertiary: #27272a; /* Zinc 800 */
+    --text-primary: #f4f4f5; /* Zinc 100 */
+    --text-muted: #a1a1aa; /* Zinc 400 */
+    --accent: #8b5cf6; /* Vibrant Violet */
+    --border: #27272a; /* Zinc 800 */
+    --lock-color: #f59e0b; /* Amber 500 */
   }
 
   /* Light Theme */
   :root:not(.dark) {
     --bg-primary: #ffffff;
-    --bg-secondary: #f3f3f3;
-    --bg-tertiary: #e8e8e8;
-    --text-primary: #1e1e1e;
-    --text-muted: #6e6e6e;
-    --border: #dcdcdc;
+    --bg-secondary: #f4f4f5; /* Zinc 100 */
+    --bg-tertiary: #e4e4e7; /* Zinc 200 */
+    --text-primary: #18181b; /* Zinc 900 */
+    --text-muted: #71717a; /* Zinc 500 */
+    --border: #e4e4e7; /* Zinc 200 */
+    --accent: #7c3aed; /* Deeper Violet */
   }
 
   html,
   body {
     margin: 0;
     padding: 0;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     background-color: var(--bg-primary);
     color: var(--text-primary);
     height: 100vh;
     overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   #root {

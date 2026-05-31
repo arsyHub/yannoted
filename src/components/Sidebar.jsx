@@ -120,11 +120,11 @@ const Sidebar = ({ notes, activeId, onOpenNote, onTrashNote, onArchiveNote, onRe
 
   return (
     <aside
-      className={`bg-[var(--bg-secondary)] transition-all duration-300 flex flex-col overflow-hidden ${isOpen ? 'w-64' : 'w-0'
+      className={`bg-[var(--bg-secondary)]/85 backdrop-blur-xl border-r border-[var(--border)] transition-all duration-300 flex flex-col overflow-hidden ${isOpen ? 'w-72' : 'w-0'
         }`}
     >
       {/* Header Sidebar */}
-      <div className="px-3 py-2 flex justify-between items-center whitespace-nowrap min-w-[16rem]">
+      <div className="px-3 py-2 flex justify-between items-center whitespace-nowrap min-w-[18rem]">
         <div className="flex items-center gap-2 select-none">
           <img src="./icon.png" alt="Yannoted Logo" className="w-5 h-5 drop-shadow-sm" />
           <h2 className="text-[var(--text-primary)] font-bold text-[13px] tracking-wide">Yannoted</h2>
@@ -155,7 +155,7 @@ const Sidebar = ({ notes, activeId, onOpenNote, onTrashNote, onArchiveNote, onRe
       </div>
 
       {/* View Tabs */}
-      <div className="px-2 pt-2 min-w-[16rem]">
+      <div className="px-2 pt-2 min-w-[18rem]">
         <div className="flex bg-[var(--bg-tertiary)] p-0.5 rounded-md">
           {[
             { id: 'active', label: `Semua (${activeCount})`, icon: FileText },
@@ -178,7 +178,7 @@ const Sidebar = ({ notes, activeId, onOpenNote, onTrashNote, onArchiveNote, onRe
       </div>
 
       {/* Search Bar & Sorting */}
-      <div className="p-2 min-w-[16rem] flex flex-col gap-2">
+      <div className="p-2 min-w-[18rem] flex flex-col gap-2">
         <div className="flex items-center gap-1.5">
           <div className="relative flex-1">
             <Search className="absolute left-2.5 top-2 text-[var(--text-muted)]" size={14} />
@@ -228,7 +228,7 @@ const Sidebar = ({ notes, activeId, onOpenNote, onTrashNote, onArchiveNote, onRe
       </div>
 
       {/* Notes List */}
-      <div className="flex-1 overflow-y-auto min-w-[16rem] custom-scrollbar">
+      <div className="flex-1 overflow-y-auto min-w-[18rem] custom-scrollbar">
         {filteredNotes.map((note, idx) => (
           <React.Fragment key={note.id}>
             <div
@@ -238,9 +238,9 @@ const Sidebar = ({ notes, activeId, onOpenNote, onTrashNote, onArchiveNote, onRe
               onDrop={(e) => handleDrop(e, idx)}
               onDragEnd={handleDragEnd}
               onClick={() => onOpenNote(note.id)}
-              className={`py-1.5 px-2.5 cursor-pointer transition-colors group ${activeId === note.id
-                ? 'bg-[var(--bg-tertiary)] border-l-[3px] border-l-[var(--accent)]'
-                : 'hover:bg-[var(--bg-tertiary)] border-l-[3px] border-l-transparent'
+              className={`py-1.5 px-2.5 cursor-pointer transition-colors group active:scale-[0.98] ${activeId === note.id
+                ? 'bg-[var(--bg-tertiary)]/40 border-l-[3px] border-l-[var(--accent)]'
+                : 'hover:bg-[var(--bg-tertiary)]/20 border-l-[3px] border-l-transparent'
                 } ${draggedIdx === idx ? 'opacity-50' : ''}`}
             >
               <div className="flex justify-between items-center gap-2">
@@ -401,7 +401,7 @@ const Sidebar = ({ notes, activeId, onOpenNote, onTrashNote, onArchiveNote, onRe
       </div>
 
       {currentView === 'trash' && filteredNotes.length > 0 && (
-        <div className="px-3 py-2 border-t border-[var(--border)] bg-[var(--bg-primary)] min-w-[16rem]">
+        <div className="px-3 py-2 border-t border-[var(--border)] bg-[var(--bg-primary)] min-w-[18rem]">
           {confirmEmptyTrash ? (
             <div className="p-3 rounded-lg bg-[#ff5f56]/10 border border-[#ff5f56]/30 shadow-sm animate-in fade-in slide-in-from-bottom-2 duration-200">
               <p className="text-[11px] text-[var(--text-primary)] mb-2 text-center">
@@ -438,7 +438,7 @@ const Sidebar = ({ notes, activeId, onOpenNote, onTrashNote, onArchiveNote, onRe
       )}
 
       {/* Footer Sidebar */}
-      <div className="px-2 py-1.5 flex justify-start gap-1 min-w-[16rem]">
+      <div className="px-2 py-1.5 flex justify-start gap-1 min-w-[18rem]">
         <button
           onClick={onOpenSettings}
           className="text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors p-1.5 rounded hover:bg-[var(--bg-tertiary)]"
