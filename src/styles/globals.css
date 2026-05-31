@@ -1,0 +1,447 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --editor-font-size: 14px;
+    --bg-primary: #1e1e1e;
+    --bg-secondary: #252526;
+    --bg-tertiary: #37373d;
+    --text-primary: #d4d4d4;
+    --text-muted: #858585;
+    /* --accent: #007acc; */
+    --accent: rgb(255, 123, 0);
+    --border: #3c3c3c;
+    --lock-color: #febc2e;
+  }
+
+  /* Light Theme */
+  :root:not(.dark) {
+    --bg-primary: #ffffff;
+    --bg-secondary: #f3f3f3;
+    --bg-tertiary: #e8e8e8;
+    --text-primary: #1e1e1e;
+    --text-muted: #6e6e6e;
+    --border: #dcdcdc;
+  }
+
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  #root {
+    height: 100%;
+  }
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--bg-tertiary);
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--border);
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.ProseMirror {
+  font-size: var(--editor-font-size);
+  outline: none;
+  min-height: 100%;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  line-height: 1.7;
+}
+
+/* Bullet List */
+.ProseMirror ul {
+  list-style-type: disc;
+  padding-left: 1.5rem;
+  margin: 0.5rem 0;
+}
+
+.ProseMirror ul ul {
+  list-style-type: circle;
+}
+
+.ProseMirror ul ul ul {
+  list-style-type: square;
+}
+
+/* Numbered List */
+.ProseMirror ol {
+  list-style-type: decimal;
+  padding-left: 1.5rem;
+  margin: 0.5rem 0;
+}
+
+.ProseMirror ol ol {
+  list-style-type: lower-alpha;
+}
+
+.ProseMirror ol ol ol {
+  list-style-type: lower-roman;
+}
+
+/* List Items */
+.ProseMirror li {
+  margin: 0.2rem 0;
+  display: list-item;
+}
+
+.ProseMirror li>p {
+  margin: 0;
+}
+
+/* Task List */
+ul[data-type="taskList"] {
+  list-style: none;
+  padding-left: 0.2rem;
+  margin: 0.5rem 0;
+}
+
+ul[data-type="taskList"] li {
+  display: flex;
+  align-items: flex-start;
+  margin: 0.3rem 0;
+}
+
+ul[data-type="taskList"] li>label {
+  flex: 0 0 auto;
+  margin-right: 0.5rem;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  margin-top: 0.3em;
+}
+
+ul[data-type="taskList"] li>div {
+  flex: 1 1 auto;
+}
+
+ul[data-type="taskList"] input[type="checkbox"] {
+  cursor: pointer;
+  width: 1rem;
+  height: 1rem;
+  accent-color: var(--accent);
+}
+
+/* Headings */
+.ProseMirror h1 {
+  font-size: 2em;
+  font-weight: 700;
+  margin: 0.67em 0;
+  line-height: 1.2;
+}
+
+.ProseMirror h2 {
+  font-size: 1.5em;
+  font-weight: 600;
+  margin: 0.75em 0;
+  line-height: 1.3;
+}
+
+.ProseMirror h3 {
+  font-size: 1.25em;
+  font-weight: 600;
+  margin: 0.8em 0;
+  line-height: 1.4;
+}
+
+/* Paragraphs */
+.ProseMirror p {
+  margin: 0.4em 0;
+}
+
+/* Blockquote */
+.ProseMirror blockquote {
+  border-left: 3px solid var(--accent);
+  padding-left: 1rem;
+  margin: 0.5rem 0;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* Code Block Wrapper */
+.code-block-wrapper {
+  background: #1e1e2e;
+  border-radius: 8px;
+  margin: 0.75rem 0;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  font-family: 'Consolas', 'JetBrains Mono', 'Fira Code', 'Monaco', monospace;
+}
+
+/* Code Block (Lowlight Syntax Highlighting) */
+.ProseMirror pre {
+  padding: 1rem 1.25rem;
+  overflow-x: auto;
+  font-family: inherit;
+  font-size: 0.875em;
+  line-height: 1.6;
+}
+
+/* Menggabungkan code block yang terpisah/berdekatan agar terlihat menjadi satu kesatuan */
+.react-renderer:has(+ .react-renderer) .code-block-wrapper {
+  border-bottom-left-radius: 0;
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.react-renderer:has(+ .react-renderer) .code-block-wrapper pre,
+.react-renderer:has(+ .react-renderer) .code-block-wrapper>div.line-numbers-col {
+  padding-bottom: 0.15rem;
+}
+
+.react-renderer+.react-renderer .code-block-wrapper {
+  border-top-left-radius: 0;
+  border-top: none;
+  margin-top: 0;
+}
+
+.react-renderer+.react-renderer .code-block-wrapper pre,
+.react-renderer+.react-renderer .code-block-wrapper>div.line-numbers-col {
+  padding-top: 0.15rem;
+}
+
+/* Sembunyikan tombol copy/lang di blok lanjutan agar tidak ganda */
+.react-renderer+.react-renderer .code-block-wrapper>.absolute {
+  display: none !important;
+}
+
+.ProseMirror pre code {
+  background: none;
+  padding: 0;
+  font-size: inherit;
+  color: #cdd6f4;
+  border-radius: 0;
+  font-family: inherit;
+}
+
+.ProseMirror code {
+  background: rgba(127, 132, 156, 0.15);
+  border-radius: 4px;
+  padding: 0.15em 0.4em;
+  font-family: 'Consolas', 'JetBrains Mono', monospace;
+  font-size: 0.9em;
+  color: #f38ba8;
+}
+
+/* Bracket Matching Highlight */
+.bracket-highlight {
+  background-color: rgba(166, 227, 161, 0.4) !important;
+  /* Hijau transparan lebih pekat */
+  border: 1px solid #a6e3a1 !important;
+  border-radius: 3px !important;
+  color: #a6e3a1 !important;
+  font-weight: bold !important;
+  transition: all 0.1s ease-in-out;
+}
+
+/* Lowlight / highlight.js token colors (Catppuccin Mocha-inspired) */
+.hljs-comment,
+.hljs-quote {
+  color: #6c7086;
+  font-style: italic;
+}
+
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-built_in {
+  color: #cba6f7;
+  font-weight: 500;
+}
+
+.hljs-string,
+.hljs-attr,
+.hljs-template-variable {
+  color: #a6e3a1;
+}
+
+.hljs-number,
+.hljs-literal {
+  color: #fab387;
+}
+
+.hljs-title,
+.hljs-section {
+  color: #89b4fa;
+  font-weight: 600;
+}
+
+.hljs-name,
+.hljs-type,
+.hljs-class .hljs-title {
+  color: #f9e2af;
+}
+
+.hljs-variable,
+.hljs-params {
+  color: #cdd6f4;
+}
+
+.hljs-attribute {
+  color: #89dceb;
+}
+
+.hljs-regexp,
+.hljs-link {
+  color: #f2cdcd;
+}
+
+.hljs-symbol,
+.hljs-bullet {
+  color: #f5c2e7;
+}
+
+.hljs-meta {
+  color: #89b4fa;
+}
+
+.hljs-tag {
+  color: #f38ba8;
+}
+
+.hljs-punctuation,
+.hljs-operator {
+  color: #7f849c;
+}
+
+.hljs-function {
+  color: #89b4fa;
+}
+
+.hljs-property {
+  color: #89dceb;
+}
+
+/* Light theme code overrides */
+:root:not(.dark) .code-block-wrapper {
+  background: #f1f5f9;
+  border-color: rgba(0, 0, 0, 0.08);
+}
+
+:root:not(.dark) .ProseMirror pre code {
+  color: #1e293b;
+}
+
+:root:not(.dark) .ProseMirror code {
+  background: rgba(99, 102, 241, 0.1);
+  color: #7c3aed;
+}
+
+:root:not(.dark) .hljs-comment {
+  color: #94a3b8;
+}
+
+:root:not(.dark) .hljs-keyword,
+:root:not(.dark) .hljs-built_in {
+  color: #7c3aed;
+}
+
+:root:not(.dark) .hljs-string,
+:root:not(.dark) .hljs-attr {
+  color: #16a34a;
+}
+
+:root:not(.dark) .hljs-number,
+:root:not(.dark) .hljs-literal {
+  color: #ea580c;
+}
+
+:root:not(.dark) .hljs-title,
+:root:not(.dark) .hljs-section,
+:root:not(.dark) .hljs-function {
+  color: #2563eb;
+}
+
+:root:not(.dark) .hljs-name,
+:root:not(.dark) .hljs-type {
+  color: #b45309;
+}
+
+:root:not(.dark) .hljs-tag {
+  color: #dc2626;
+}
+
+:root:not(.dark) .hljs-attribute,
+:root:not(.dark) .hljs-property {
+  color: #0891b2;
+}
+
+.ProseMirror-focused {
+  outline: none;
+}
+
+/* Fix for empty paragraphs */
+.ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: var(--text-muted);
+  pointer-events: none;
+  height: 0;
+}
+
+/* Spoiler Text Formatting */
+.spoiler-text {
+  background-color: var(--text-muted);
+  color: transparent;
+  cursor: pointer;
+  border-radius: 4px;
+  padding: 0 4px;
+  transition: all 0.2s ease;
+  background-image: radial-gradient(var(--bg-primary) 30%, transparent 30%);
+  background-size: 4px 4px;
+}
+
+.spoiler-text::selection {
+  background: transparent;
+  color: transparent;
+}
+
+.spoiler-text.revealed {
+  background-color: var(--bg-tertiary);
+  color: inherit;
+  background-image: none;
+}
+
+.spoiler-text.revealed::selection {
+  background: var(--accent);
+  color: white;
+}
+
+/* Search Highlight */
+.search-highlight {
+  background-color: rgba(255, 200, 0, 0.35);
+  border-radius: 2px;
+}
+
+.search-highlight-current {
+  background-color: rgba(255, 140, 0, 0.6);
+  border-radius: 2px;
+  outline: 1px solid rgba(255, 140, 0, 0.9);
+}
