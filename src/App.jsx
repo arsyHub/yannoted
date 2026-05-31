@@ -364,6 +364,7 @@ function App() {
           hint={masterPasswordHint}
           onCancel={() => setShowMasterPasswordPrompt(false)}
           title="Masukkan Master Password"
+          submitText="Kunci Catatan"
         />
       )}
 

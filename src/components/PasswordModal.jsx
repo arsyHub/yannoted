@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const PasswordModal = ({ onSubmit, hint, onCancel, title = "Masukkan Password", description, isAppLevel = false, isUsingDefault = false }) => {
+const PasswordModal = ({ onSubmit, hint, onCancel, title = "Masukkan Password", description, submitText = "Buka Kunci", isAppLevel = false, isUsingDefault = false }) => {
   const [password, setPassword] = useState('');
   const [showHint, setShowHint] = useState(false);
   const [isShaking, setIsShaking] = useState(false);
@@ -105,7 +105,7 @@ const PasswordModal = ({ onSubmit, hint, onCancel, title = "Masukkan Password", 
             disabled={isProcessing || !password}
             className="w-full bg-[var(--accent)] text-white font-medium py-2 rounded hover:opacity-90 transition-opacity disabled:opacity-50"
           >
-            {isProcessing ? 'Memproses...' : 'Buka Kunci'}
+            {isProcessing ? 'Memproses...' : submitText}
           </button>
         </form>
       </div>

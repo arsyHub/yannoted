@@ -114,6 +114,10 @@ const Sidebar = ({ notes, activeId, onOpenNote, onTrashNote, onArchiveNote, onRe
     setDraggedIdx(null);
   };
 
+  const activeCount = notes.filter(n => (n.status || 'active') === 'active').length;
+  const archivedCount = notes.filter(n => n.status === 'archived').length;
+  const trashCount = notes.filter(n => n.status === 'trash').length;
+
   return (
     <aside
       className={`bg-[var(--bg-secondary)] transition-all duration-300 flex flex-col overflow-hidden ${isOpen ? 'w-64' : 'w-0'
@@ -154,9 +158,9 @@ const Sidebar = ({ notes, activeId, onOpenNote, onTrashNote, onArchiveNote, onRe
       <div className="px-2 pt-2 min-w-[16rem]">
         <div className="flex bg-[var(--bg-tertiary)] p-0.5 rounded-md">
           {[
-            { id: 'active', label: 'Semua', icon: FileText },
-            { id: 'archived', label: 'Arsip', icon: Archive },
-            { id: 'trash', label: 'Sampah', icon: Trash2 }
+            { id: 'active', label: `Semua (${activeCount})`, icon: FileText },
+            { id: 'archived', label: `Arsip (${archivedCount})`, icon: Archive },
+            { id: 'trash', label: `Sampah (${trashCount})`, icon: Trash2 }
           ].map(tab => {
             const Icon = tab.icon;
             return (
