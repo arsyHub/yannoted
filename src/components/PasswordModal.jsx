@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const PasswordModal = ({ onSubmit, hint, onCancel, title = "Masukkan Password", isAppLevel = false, isUsingDefault = false }) => {
+const PasswordModal = ({ onSubmit, hint, onCancel, title = "Masukkan Password", description, isAppLevel = false, isUsingDefault = false }) => {
   const [password, setPassword] = useState('');
   const [showHint, setShowHint] = useState(false);
   const [isShaking, setIsShaking] = useState(false);
@@ -34,6 +34,12 @@ const PasswordModal = ({ onSubmit, hint, onCancel, title = "Masukkan Password", 
         style={{ WebkitAppRegion: 'no-drag' }}
       >
         <h2 className="text-xl font-semibold mb-3 text-[var(--text-primary)] text-center">{title}</h2>
+        
+        {description && (
+          <div className="bg-[#ff5f56]/10 text-[#ff5f56] p-3 rounded text-sm mb-4 text-center border border-[#ff5f56]/20 leading-relaxed">
+            {description}
+          </div>
+        )}
         
         {isUsingDefault && (
           <div className="flex items-center justify-center text-xs text-[var(--accent)] mb-4 font-medium bg-[var(--accent)]/10 py-1.5 px-3 rounded-full w-fit mx-auto border border-[var(--accent)]/20">

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { v4 as uuid } from 'uuid';
 import { storage } from '../utils/storage';
 import { generateNoteName } from '../utils/dateFormat';
-import { hashPassword, verifyPassword, encryptContent, decryptContent } from '../utils/crypto';
+import { encryptContent, decryptContent } from '../utils/crypto';
 
 export function useNotes() {
   const [notes, setNotes] = useState([]);
@@ -170,8 +170,6 @@ export function useNotes() {
       createdAt: now,
       updatedAt: now,
       isLocked: false,
-      lockPasswordHash: null,
-      lockHint: null,
       encryptedContent: null,
       isPinned: false,
       status: 'active', // 'active', 'archived', 'trash'
@@ -348,39 +346,38 @@ export function useNotes() {
     });
   };
 
-  const lockNote = (id, pw, hint) => {
-    const hash = hashPassword(pw);
+  const lockNote = (id, masterPw) => {
     const note = notesRef.current.find(n => n.id === id);
-    const encrypted = note ? encryptContent(note.content, pw) : '';
+    const encrypted = note ? encryptContent(note.content, masterPw) : '';
 
     setNotes(prev => prev.map(n =>
-      n.id === id ? { ...n, isLocked: true, lockPasswordHash: hash, lockHint: hint, encryptedContent: encrypted } : n
+      n.id === id ? { ...n, isLocked: true, encryptedContent: encrypted } : n
     ));
     // Store password in session for re-encryption on persist
-    sessionPasswordsRef.current.set(id, pw);
+    sessionPasswordsRef.current.set(id, masterPw);
     setSessionUnlockedIds(prev => new Set(prev).add(id));
   };
 
-  const unlockForSession = (id, pw) => {
+  const unlockForSession = (id, masterPw) => {
     const note = notes.find(n => n.id === id);
-    if (!note || !verifyPassword(pw, note.lockPasswordHash)) return false;
+    if (!note) return false;
 
     // Decrypt content if encrypted
     if (note.encryptedContent) {
-      const decrypted = decryptContent(note.encryptedContent, pw);
+      const decrypted = decryptContent(note.encryptedContent, masterPw);
       setNotes(prev => prev.map(n =>
         n.id === id ? { ...n, content: decrypted } : n
       ));
     }
     // Store password in session for re-encryption on persist
-    sessionPasswordsRef.current.set(id, pw);
+    sessionPasswordsRef.current.set(id, masterPw);
     setSessionUnlockedIds(prev => new Set(prev).add(id));
     return true;
   };
 
   const removeLock = (id) => {
     setNotes(prev => prev.map(n =>
-      n.id === id ? { ...n, isLocked: false, lockPasswordHash: null, lockHint: null, encryptedContent: null } : n
+      n.id === id ? { ...n, isLocked: false, encryptedContent: null } : n
     ));
     sessionPasswordsRef.current.delete(id);
     setSessionUnlockedIds(prev => {
@@ -388,6 +385,40 @@ export function useNotes() {
       next.delete(id);
       return next;
     });
+  };
+
+  const changeMasterPassword = (oldPw, newPw) => {
+    setNotes(prev => prev.map(n => {
+      if (n.isLocked && n.encryptedContent) {
+        // Decrypt with old password
+        const decrypted = decryptContent(n.encryptedContent, oldPw);
+        // Encrypt with new password
+        const newlyEncrypted = encryptContent(decrypted, newPw);
+        
+        // Update session password if this note is currently unlocked
+        if (sessionPasswordsRef.current.has(n.id)) {
+          sessionPasswordsRef.current.set(n.id, newPw);
+        }
+        
+        return { ...n, encryptedContent: newlyEncrypted };
+      }
+      return n;
+    }));
+  };
+
+  const removeAllLocks = (masterPw) => {
+    setNotes(prev => prev.map(n => {
+      if (n.isLocked) {
+        let contentToRestore = n.content;
+        if (n.encryptedContent) {
+           contentToRestore = decryptContent(n.encryptedContent, masterPw);
+        }
+        return { ...n, isLocked: false, encryptedContent: null, content: contentToRestore };
+      }
+      return n;
+    }));
+    sessionPasswordsRef.current.clear();
+    setSessionUnlockedIds(new Set());
   };
 
   // Fix 1.1: No nested setState in openExternalFile
@@ -500,6 +531,8 @@ export function useNotes() {
     lockNote,
     unlockForSession,
     removeLock,
+    changeMasterPassword,
+    removeAllLocks,
     sessionUnlockedIds,
     openExternalFile,
     saveNoteToFile,

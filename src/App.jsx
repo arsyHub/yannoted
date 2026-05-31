@@ -5,7 +5,7 @@ import TabBar from './components/TabBar';
 import Toolbar from './components/Toolbar';
 import Editor from './components/Editor';
 import PasswordModal from './components/PasswordModal';
-import LockTabModal from './components/LockTabModal';
+import MasterPasswordSetupModal from './components/MasterPasswordSetupModal';
 import SettingsModal from './components/SettingsModal';
 import ShortcutsModal from './components/ShortcutsModal';
 import FindReplacePanel from './components/FindReplacePanel';
@@ -40,6 +40,8 @@ function App() {
     lockNote,
     unlockForSession,
     removeLock,
+    changeMasterPassword,
+    removeAllLocks,
     sessionUnlockedIds,
     openExternalFile,
     saveNoteToFile
@@ -62,27 +64,47 @@ function App() {
   const [showShortcutsModal, setShowShortcutsModal] = useState(false);
   const [showFindReplace, setShowFindReplace] = useState(false);
   const [contextMenu, setContextMenu] = useState(null); // { x, y }
+  const [showMasterPasswordPrompt, setShowMasterPasswordPrompt] = useState(false);
 
-  // Default Note Password State
-  const [defaultNotePasswordHash, setDefaultNotePasswordHash] = useState(null);
-  const [defaultNotePassword, setDefaultNotePassword] = useState(null); // In-memory only, for encryption
-  const [defaultNoteHint, setDefaultNoteHint] = useState('');
+  // Master Password State
+  const [masterPasswordHash, setMasterPasswordHash] = useState(null);
+  const [masterPassword, setMasterPassword] = useState(null); // In-memory only, for encryption
+  const [masterPasswordHint, setMasterPasswordHint] = useState('');
 
-  const handleSetDefaultPassword = async (pw, hint) => {
+  const handleSetMasterPassword = async (pw, hint) => {
     const hash = hashPassword(pw);
-    await storage.set('defaultNotePasswordHash', hash);
-    await storage.set('defaultNoteHint', hint);
-    setDefaultNotePasswordHash(hash);
-    setDefaultNotePassword(pw); // Keep plaintext in memory for encryption
-    setDefaultNoteHint(hint);
+    await storage.set('masterPasswordHash', hash);
+    await storage.set('masterPasswordHint', hint);
+    setMasterPasswordHash(hash);
+    setMasterPassword(pw);
+    setMasterPasswordHint(hint);
   };
 
-  const handleRemoveDefaultPassword = async () => {
-    await storage.delete('defaultNotePasswordHash');
-    await storage.delete('defaultNoteHint');
-    setDefaultNotePasswordHash(null);
-    setDefaultNotePassword(null);
-    setDefaultNoteHint('');
+  const handleRemoveMasterPassword = async (pw) => {
+    if (verifyPassword(pw, masterPasswordHash)) {
+      removeAllLocks(pw);
+      await storage.delete('masterPasswordHash');
+      await storage.delete('masterPasswordHint');
+      setMasterPasswordHash(null);
+      setMasterPassword(null);
+      setMasterPasswordHint('');
+      return true;
+    }
+    return false;
+  };
+
+  const handleChangeMasterPassword = async (oldPw, newPw, hint) => {
+    if (verifyPassword(oldPw, masterPasswordHash)) {
+      changeMasterPassword(oldPw, newPw);
+      const hash = hashPassword(newPw);
+      await storage.set('masterPasswordHash', hash);
+      await storage.set('masterPasswordHint', hint);
+      setMasterPasswordHash(hash);
+      setMasterPassword(newPw);
+      setMasterPasswordHint(hint);
+      return true;
+    }
+    return false;
   };
 
   // TipTap Editor instance
@@ -100,17 +122,17 @@ function App() {
       }
     };
 
-    const loadDefaultNotePassword = async () => {
-      const hash = await storage.get('defaultNotePasswordHash');
-      const hint = await storage.get('defaultNoteHint');
+    const loadMasterPassword = async () => {
+      const hash = await storage.get('masterPasswordHash');
+      const hint = await storage.get('masterPasswordHint');
       if (hash) {
-        setDefaultNotePasswordHash(hash);
-        setDefaultNoteHint(hint || '');
+        setMasterPasswordHash(hash);
+        setMasterPasswordHint(hint || '');
       }
     };
 
     checkAppPassword();
-    loadDefaultNotePassword();
+    loadMasterPassword();
   }, []);
 
   // Ref for activeId to avoid re-registering keyboard handler on every tab switch
@@ -196,9 +218,27 @@ function App() {
         setShowUnlockModal(true);
       }
     } else {
-      // Show lock setup modal
-      setShowLockModal(true);
+      if (!masterPasswordHash) {
+        // Show lock setup modal
+        setShowLockModal(true);
+      } else if (!masterPassword) {
+        // Need to ask for master password to encrypt
+        setShowMasterPasswordPrompt(true);
+      } else {
+        // Lock immediately
+        lockNote(activeId, masterPassword);
+      }
     }
+  };
+
+  const handleMasterPasswordPromptSubmit = async (password) => {
+    if (verifyPassword(password, masterPasswordHash)) {
+      setMasterPassword(password);
+      lockNote(activeId, password);
+      setShowMasterPasswordPrompt(false);
+      return true;
+    }
+    return false;
   };
 
   const handleExportTXT = () => {
@@ -304,32 +344,29 @@ function App() {
       )}
 
       {showLockModal && (
-        <LockTabModal
-          hasDefaultPassword={!!defaultNotePassword}
-          onSave={async (pw, hint, saveAsDefault) => {
-            lockNote(activeId, pw, hint);
-            if (saveAsDefault) {
-              const hash = hashPassword(pw);
-              await storage.set('defaultNotePasswordHash', hash);
-              await storage.set('defaultNoteHint', hint);
-              setDefaultNotePasswordHash(hash);
-              setDefaultNotePassword(pw);
-              setDefaultNoteHint(hint);
-            }
-            setShowLockModal(false);
-          }}
-          onSaveDefault={() => {
-            lockNote(activeId, defaultNotePassword, defaultNoteHint);
+        <MasterPasswordSetupModal
+          onSave={async (pw, hint) => {
+            await handleSetMasterPassword(pw, hint);
+            lockNote(activeId, pw);
             setShowLockModal(false);
           }}
           onCancel={() => setShowLockModal(false)}
         />
       )}
 
+      {showMasterPasswordPrompt && (
+        <PasswordModal
+          onSubmit={handleMasterPasswordPromptSubmit}
+          hint={masterPasswordHint}
+          onCancel={() => setShowMasterPasswordPrompt(false)}
+          title="Masukkan Master Password"
+        />
+      )}
+
       {showUnlockModal && activeNote && !sessionUnlockedIds.has(activeId) && (
         <PasswordModal
           onSubmit={handleTabUnlock}
-          hint={activeNote.lockHint}
+          hint={masterPasswordHint}
           onCancel={() => setShowUnlockModal(false)}
           title={`Buka Kunci: ${activeNote.name}`}
         />
@@ -338,9 +375,11 @@ function App() {
       {showSettingsModal && (
         <SettingsModal
           onClose={() => setShowSettingsModal(false)}
-          hasDefaultPassword={!!defaultNotePasswordHash}
-          onSetDefault={handleSetDefaultPassword}
-          onRemoveDefault={handleRemoveDefaultPassword}
+          hasMasterPassword={!!masterPasswordHash}
+          masterPasswordHint={masterPasswordHint}
+          onSetMasterPassword={handleSetMasterPassword}
+          onRemoveMasterPassword={handleRemoveMasterPassword}
+          onChangeMasterPassword={handleChangeMasterPassword}
         />
       )}
 

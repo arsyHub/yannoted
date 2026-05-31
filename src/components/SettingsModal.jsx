@@ -1,12 +1,32 @@
 import React, { useState } from 'react';
+import PasswordModal from './PasswordModal';
 
-const SettingsModal = ({ onClose, hasDefaultPassword, onSetDefault, onRemoveDefault }) => {
+const SettingsModal = ({ 
+  onClose, 
+  hasMasterPassword, 
+  masterPasswordHint,
+  onSetMasterPassword, 
+  onRemoveMasterPassword,
+  onChangeMasterPassword 
+}) => {
+  const [activeTab, setActiveTab] = useState('status'); // 'status', 'change', 'remove'
+  
+  // Set Password State (if not set)
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [hint, setHint] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
 
-  const handleSave = (e) => {
+  // Change Password State
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
+  const [changeHint, setChangeHint] = useState('');
+
+  // Remove confirmation via PasswordModal
+  const [showRemoveConfirm, setShowRemoveConfirm] = useState(false);
+
+  const handleSetPassword = (e) => {
     e.preventDefault();
     if (password !== confirmPassword) {
       setErrorMsg('Konfirmasi password tidak cocok!');
@@ -16,11 +36,46 @@ const SettingsModal = ({ onClose, hasDefaultPassword, onSetDefault, onRemoveDefa
       setErrorMsg('Password minimal 4 karakter!');
       return;
     }
-    onSetDefault(password, hint);
+    onSetMasterPassword(password, hint);
     setPassword('');
     setConfirmPassword('');
     setHint('');
     setErrorMsg('');
+  };
+
+  const handleChangePassword = async (e) => {
+    e.preventDefault();
+    if (newPassword !== confirmNewPassword) {
+      setErrorMsg('Konfirmasi password baru tidak cocok!');
+      return;
+    }
+    if (newPassword.length < 4) {
+      setErrorMsg('Password baru minimal 4 karakter!');
+      return;
+    }
+    
+    const success = await onChangeMasterPassword(currentPassword, newPassword, changeHint);
+    if (!success) {
+      setErrorMsg('Password saat ini salah!');
+      return;
+    }
+    
+    setCurrentPassword('');
+    setNewPassword('');
+    setConfirmNewPassword('');
+    setChangeHint('');
+    setErrorMsg('');
+    setActiveTab('status');
+  };
+
+  const handleRemoveConfirm = async (pw) => {
+    const success = await onRemoveMasterPassword(pw);
+    if (success) {
+      setShowRemoveConfirm(false);
+      setActiveTab('status');
+      return true;
+    }
+    return false;
   };
 
   return (
@@ -40,32 +95,100 @@ const SettingsModal = ({ onClose, hasDefaultPassword, onSetDefault, onRemoveDefa
         </div>
         
         <div className="mb-4">
-          <h3 className="text-sm font-medium text-[var(--text-primary)] mb-2 border-b border-[var(--border)] pb-1">Password Default Catatan</h3>
+          <h3 className="text-sm font-medium text-[var(--text-primary)] mb-2 border-b border-[var(--border)] pb-1">Master Password</h3>
           
-          {hasDefaultPassword ? (
-            <div className="bg-[var(--bg-tertiary)] p-3 rounded border border-[var(--border)]">
-              <div className="flex items-center text-green-500 mb-3 text-sm font-medium">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="mr-2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-                Password default aktif
+          {hasMasterPassword ? (
+            activeTab === 'status' ? (
+              <div className="bg-[var(--bg-tertiary)] p-3 rounded border border-[var(--border)]">
+                <div className="flex items-center text-green-500 mb-4 text-sm font-medium">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="mr-2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                  Master Password Aktif
+                </div>
+                <div className="flex flex-col gap-2">
+                  <button 
+                    onClick={() => { setActiveTab('change'); setErrorMsg(''); }}
+                    className="w-full py-2 bg-[var(--accent)]/10 text-[var(--accent)] hover:bg-[var(--accent)]/20 rounded transition-colors text-sm font-medium"
+                  >
+                    Ubah Master Password
+                  </button>
+                  <button 
+                    onClick={() => setShowRemoveConfirm(true)}
+                    className="w-full py-2 bg-[#ff5f56]/10 text-[#ff5f56] hover:bg-[#ff5f56]/20 rounded transition-colors text-sm font-medium"
+                  >
+                    Hapus Master Password
+                  </button>
+                </div>
               </div>
-              <button 
-                onClick={onRemoveDefault}
-                className="w-full py-2 bg-[#ff5f56]/10 text-[#ff5f56] hover:bg-[#ff5f56]/20 rounded transition-colors text-sm font-medium"
-              >
-                Hapus Password Default
-              </button>
-            </div>
+            ) : activeTab === 'change' ? (
+              <form onSubmit={handleChangePassword} className="bg-[var(--bg-tertiary)] p-3 rounded border border-[var(--border)]">
+                <p className="text-xs text-[var(--text-muted)] mb-3 leading-relaxed">
+                  Mengubah Master Password akan memperbarui semua catatan yang terkunci.
+                </p>
+                <input 
+                  type="password"
+                  value={currentPassword}
+                  onChange={(e) => { setCurrentPassword(e.target.value); setErrorMsg(''); }}
+                  placeholder="Password saat ini"
+                  className="w-full mb-2 bg-[var(--bg-primary)] text-[var(--text-primary)] border border-[var(--border)] rounded px-3 py-1.5 outline-none focus:border-[var(--accent)] text-sm"
+                  required
+                />
+                <div className="h-[1px] bg-[var(--border)] my-3"></div>
+                <input 
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => { setNewPassword(e.target.value); setErrorMsg(''); }}
+                  placeholder="Password baru"
+                  className="w-full mb-2 bg-[var(--bg-primary)] text-[var(--text-primary)] border border-[var(--border)] rounded px-3 py-1.5 outline-none focus:border-[var(--accent)] text-sm"
+                  required
+                />
+                <input 
+                  type="password"
+                  value={confirmNewPassword}
+                  onChange={(e) => { setConfirmNewPassword(e.target.value); setErrorMsg(''); }}
+                  placeholder="Konfirmasi password baru"
+                  className="w-full mb-2 bg-[var(--bg-primary)] text-[var(--text-primary)] border border-[var(--border)] rounded px-3 py-1.5 outline-none focus:border-[var(--accent)] text-sm"
+                  required
+                />
+                <input 
+                  type="text"
+                  value={changeHint}
+                  onChange={(e) => setChangeHint(e.target.value)}
+                  placeholder="Hint baru (opsional)"
+                  className="w-full mb-3 bg-[var(--bg-primary)] text-[var(--text-primary)] border border-[var(--border)] rounded px-3 py-1.5 outline-none focus:border-[var(--accent)] text-sm"
+                />
+                {errorMsg && (
+                  <div className="text-[#ff5f56] text-xs mb-3 font-medium text-center">
+                    {errorMsg}
+                  </div>
+                )}
+                <div className="flex gap-2">
+                  <button 
+                    type="button" 
+                    onClick={() => setActiveTab('status')}
+                    className="flex-1 py-2 text-[var(--text-primary)] hover:bg-[var(--bg-primary)] rounded transition-colors text-sm font-medium"
+                  >
+                    Batal
+                  </button>
+                  <button 
+                    type="submit" 
+                    className="flex-1 py-2 bg-[var(--accent)] text-white hover:opacity-90 rounded transition-opacity text-sm font-medium"
+                  >
+                    Ubah
+                  </button>
+                </div>
+              </form>
+            ) : null
           ) : (
-            <form onSubmit={handleSave} className="bg-[var(--bg-tertiary)] p-3 rounded border border-[var(--border)]">
+            <form onSubmit={handleSetPassword} className="bg-[var(--bg-tertiary)] p-3 rounded border border-[var(--border)]">
               <p className="text-xs text-[var(--text-muted)] mb-3 leading-relaxed">
-                Atur password default agar Anda tidak perlu mengetik ulang saat mengunci catatan baru.
+                Buat satu Master Password untuk mengunci catatan Anda. 
               </p>
               
               <input 
                 type="password"
                 value={password}
                 onChange={(e) => { setPassword(e.target.value); setErrorMsg(''); }}
-                placeholder="Password default"
+                placeholder="Master Password baru"
                 className="w-full mb-2 bg-[var(--bg-primary)] text-[var(--text-primary)] border border-[var(--border)] rounded px-3 py-1.5 outline-none focus:border-[var(--accent)] text-sm"
                 required
               />
@@ -88,7 +211,7 @@ const SettingsModal = ({ onClose, hasDefaultPassword, onSetDefault, onRemoveDefa
               />
               
               {errorMsg && (
-                <div className="text-[#ff5f56] text-xs mb-3 font-medium">
+                <div className="text-[#ff5f56] text-xs mb-3 font-medium text-center">
                   {errorMsg}
                 </div>
               )}
@@ -97,12 +220,22 @@ const SettingsModal = ({ onClose, hasDefaultPassword, onSetDefault, onRemoveDefa
                 type="submit" 
                 className="w-full py-2 bg-[var(--accent)] text-white hover:opacity-90 rounded transition-opacity text-sm font-medium"
               >
-                Simpan Password Default
+                Buat Master Password
               </button>
             </form>
           )}
         </div>
       </div>
+
+      {showRemoveConfirm && (
+        <PasswordModal
+          onSubmit={handleRemoveConfirm}
+          onCancel={() => setShowRemoveConfirm(false)}
+          title="Masukkan Password"
+          description="Menghapus Master Password akan otomatis membuka semua kunci pada catatan yang terkunci."
+          hint={masterPasswordHint}
+        />
+      )}
     </div>
   );
 };
