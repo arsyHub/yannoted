@@ -49,7 +49,7 @@ function App() {
   } = useNotes();
 
   const { toggleTheme } = useTheme();
-  useFontSize(); // Initialize font size listener
+  const { fontSize } = useFontSize(); // Initialize font size listener
 
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
@@ -336,6 +336,7 @@ function App() {
             editor={editor} 
             noteName={activeNote?.name} 
             noteFilePath={activeNote?.filePath}
+            fontSize={fontSize}
           />
         </main>
       </div>

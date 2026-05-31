@@ -10,6 +10,7 @@ import { TextStyle } from '@tiptap/extension-text-style';
 import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
 import TaskList from '@tiptap/extension-task-list';
 import TaskItem from '@tiptap/extension-task-item';
+import Image from '@tiptap/extension-image';
 import { createLowlight } from 'lowlight';
 import javascript from 'highlight.js/lib/languages/javascript';
 import typescript from 'highlight.js/lib/languages/typescript';
@@ -90,11 +91,59 @@ const Editor = ({ note, onContentChange, onEditorReady, isSessionUnlocked }) => 
         nested: true,
       }),
       Placeholder.configure({ placeholder: 'Mulai mengetik catatan Anda di sini...' }),
+      Image.configure({
+        inline: true,
+        allowBase64: true,
+      }),
       Spoiler,
       SearchHighlight,
       BracketMatch,
       SlashCommand,
     ],
+    editorProps: {
+      handlePaste: (view, event) => {
+        const items = Array.from(event.clipboardData?.items || []);
+        for (const item of items) {
+          if (item.type.indexOf('image') === 0) {
+            event.preventDefault();
+            const file = item.getAsFile();
+            if (file) {
+              const reader = new FileReader();
+              reader.onload = (e) => {
+                const schema = view.state.schema;
+                const node = schema.nodes.image.create({ src: e.target.result });
+                const transaction = view.state.tr.replaceSelectionWith(node);
+                view.dispatch(transaction);
+              };
+              reader.readAsDataURL(file);
+            }
+            return true;
+          }
+        }
+        return false;
+      },
+      handleDrop: (view, event, slice, moved) => {
+        if (!moved && event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files[0]) {
+          const file = event.dataTransfer.files[0];
+          if (file.type.indexOf('image') === 0) {
+            event.preventDefault();
+            const reader = new FileReader();
+            reader.onload = (e) => {
+              const schema = view.state.schema;
+              const coordinates = view.posAtCoords({ left: event.clientX, top: event.clientY });
+              if (coordinates) {
+                const node = schema.nodes.image.create({ src: e.target.result });
+                const transaction = view.state.tr.insert(coordinates.pos, node);
+                view.dispatch(transaction);
+              }
+            };
+            reader.readAsDataURL(file);
+            return true;
+          }
+        }
+        return false;
+      },
+    },
     content: note ? note.content : '',
     autofocus: false,
     editable: note ? note.status === 'active' : true,
@@ -217,7 +266,7 @@ const Editor = ({ note, onContentChange, onEditorReady, isSessionUnlocked }) => 
           {note.status === 'trash' ? 'Catatan ini ada di Sampah — kembalikan untuk mengedit.' : 'Catatan ini diarsipkan — kembalikan untuk mengedit.'}
         </div>
       )}
-      <div 
+      <div
         ref={scrollRef}
         onScroll={handleScroll}
         className="flex-1 bg-[var(--bg-primary)] text-[var(--text-primary)] overflow-y-auto custom-scrollbar px-12 py-10"

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-const StatusBar = ({ editor, noteName, noteFilePath }) => {
+const StatusBar = ({ editor, noteName, noteFilePath, fontSize = 14 }) => {
   const [stats, setStats] = useState({
     words: 0,
     chars: 0,
@@ -119,6 +119,13 @@ const StatusBar = ({ editor, noteName, noteFilePath }) => {
         {/* Lines */}
         <span title="Jumlah baris">
           {stats.lines.toLocaleString('id-ID')} baris
+        </span>
+
+        {sep()}
+
+        {/* Zoom Level */}
+        <span title="Tingkat Zoom">
+          {Math.round((fontSize / 14) * 100)}%
         </span>
 
         {sep()}

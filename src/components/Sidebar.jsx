@@ -151,7 +151,7 @@ const Sidebar = ({ notes, activeId, onOpenNote, onTrashNote, onArchiveNote, onRe
       <div className="px-3 pt-1 pb-3 min-w-[18rem]">
         <button
           onClick={onAdd}
-          className="w-full flex items-center justify-center gap-2 bg-[var(--accent)] text-white py-1.5 px-4 rounded-lg text-[13px] font-semibold transition-all hover:opacity-90 active:scale-[0.98] shadow-sm shadow-[var(--accent-border)]"
+          className="w-full h-[34px] flex items-center justify-center gap-2 bg-[var(--accent)] text-white rounded-lg text-[13px] font-semibold transition-all hover:opacity-90 active:scale-[0.98] shadow-sm shadow-[var(--accent-border)]"
         >
           <Plus size={15} strokeWidth={2.5} />
           Catatan Baru
@@ -162,19 +162,19 @@ const Sidebar = ({ notes, activeId, onOpenNote, onTrashNote, onArchiveNote, onRe
       <div className="px-2 pt-2 min-w-[18rem] flex flex-col gap-2">
         <div className="flex items-center gap-1.5">
           <div className="relative flex-1">
-            <Search className="absolute left-2.5 top-2 text-[var(--text-muted)]" size={14} />
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" size={14} />
             <input
               type="text"
               placeholder="Cari catatan..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-[var(--bg-tertiary)] text-[var(--text-primary)] text-xs rounded-md pl-8 pr-2 py-1.5 outline-none focus:ring-1 focus:ring-[var(--accent)] border border-transparent focus:border-[var(--accent)] transition-all placeholder-[var(--text-muted)]"
+              className="w-full h-[34px] bg-[var(--bg-tertiary)] text-[var(--text-primary)] text-[13px] rounded-lg pl-8 pr-2 outline-none focus:ring-1 focus:ring-[var(--accent)] border border-transparent focus:border-[var(--accent)] transition-all placeholder-[var(--text-muted)]"
             />
           </div>
           <div className="relative">
             <button
               onClick={() => setShowSortMenu(!showSortMenu)}
-              className={`p-1.5 rounded-md transition-colors ${showSortMenu ? 'bg-[var(--border)] text-[var(--text-primary)]' : 'bg-[var(--bg-tertiary)] text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--border)]'}`}
+              className={`h-[34px] w-[34px] flex items-center justify-center rounded-lg transition-colors ${showSortMenu ? 'bg-[var(--border)] text-[var(--text-primary)]' : 'bg-[var(--bg-tertiary)] text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--border)]'}`}
               title="Urutkan Catatan"
             >
               <ListFilter size={14} />
