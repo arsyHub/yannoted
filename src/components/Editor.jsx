@@ -39,8 +39,17 @@ lowlight.register('bash', bash);
 lowlight.register('sh', bash);
 lowlight.register('sql', sql);
 
+const savedCursorPositions = new Map();
+const savedScrollPositions = new Map();
+
 const Editor = ({ note, onContentChange, onEditorReady, isSessionUnlocked }) => {
   const scrollRef = useRef(null);
+
+  const handleScroll = (e) => {
+    if (note) {
+      savedScrollPositions.set(note.id, e.target.scrollTop);
+    }
+  };
 
   const scrollToTop = () => {
     if (scrollRef.current) scrollRef.current.scrollTo({ top: 0, behavior: 'smooth' });
@@ -87,10 +96,18 @@ const Editor = ({ note, onContentChange, onEditorReady, isSessionUnlocked }) => 
       SlashCommand,
     ],
     content: note ? note.content : '',
-    autofocus: 'end',
+    autofocus: false,
     editable: note ? note.status === 'active' : true,
     onUpdate: ({ editor }) => {
       onContentChange(editor.getHTML());
+    },
+    onSelectionUpdate: ({ editor }) => {
+      if (note) {
+        savedCursorPositions.set(note.id, {
+          from: editor.state.selection.from,
+          to: editor.state.selection.to
+        });
+      }
     },
   });
 
@@ -123,14 +140,40 @@ const Editor = ({ note, onContentChange, onEditorReady, isSessionUnlocked }) => 
     }
   }, [editor, onEditorReady]);
 
-  // Update konten editor ketika user berpindah tab catatan
+  // Restore posisi cursor dan scroll ketika komponen mount / tab dibuka
+  useEffect(() => {
+    if (editor && note) {
+      const timer = setTimeout(() => {
+        // 1. Restore Cursor
+        const savedPos = savedCursorPositions.get(note.id);
+        if (savedPos) {
+          try {
+            editor.chain().focus().setTextSelection(savedPos).run();
+          } catch (e) {
+            editor.chain().focus('end').run();
+          }
+        } else {
+          editor.chain().focus('end').run();
+        }
+
+        // 2. Restore Scroll
+        const savedScroll = savedScrollPositions.get(note.id);
+        if (savedScroll !== undefined && scrollRef.current) {
+          scrollRef.current.scrollTop = savedScroll;
+        }
+      }, 10);
+      return () => clearTimeout(timer);
+    }
+  }, [editor, note?.id]);
+
+  // Update konten editor ketika berubah dari luar (misal: file update)
   useEffect(() => {
     if (editor && note) {
       if (editor.getHTML() !== note.content) {
         editor.commands.setContent(note.content || '');
       }
     }
-  }, [note?.id, editor]);
+  }, [note?.content, editor]);
 
   if (!note) {
     return (
@@ -176,6 +219,7 @@ const Editor = ({ note, onContentChange, onEditorReady, isSessionUnlocked }) => 
       )}
       <div 
         ref={scrollRef}
+        onScroll={handleScroll}
         className="flex-1 bg-[var(--bg-primary)] text-[var(--text-primary)] overflow-y-auto custom-scrollbar p-8"
       >
         <div className="max-w-4xl mx-auto h-full">
