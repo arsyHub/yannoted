@@ -302,6 +302,12 @@ export function useNotes() {
   };
 
   const trashNote = (id) => {
+    const note = notesRef.current.find(n => n.id === id);
+    if (note && note.filePath) {
+      // File eksternal langsung dihapus dari daftar aplikasi, tidak masuk ke sampah internal
+      deleteNotePermanently(id);
+      return;
+    }
     setNotes(prev => prev.map(n => n.id === id ? { ...n, status: 'trash', isPinned: false, updatedAt: Date.now() } : n));
     closeTab(id);
   };
@@ -482,8 +488,14 @@ export function useNotes() {
     let targetPath = note.filePath;
 
     if (!targetPath) {
-      targetPath = await window.electronAPI.saveFileDialog(`${note.name}.txt`);
-      if (!targetPath) return;
+      // Catatan internal disimpan secara otomatis oleh sistem state (auto-save).
+      // Hilangkan indikator edit (isDirty) agar pengguna merasa catatannya sudah "disimpan".
+      setNotes(prev => prev.map(n =>
+        n.id === idToSave
+          ? { ...n, isDirty: false }
+          : n
+      ));
+      return;
     } else {
       const response = await window.electronAPI.showMessage({
         type: 'question',
@@ -502,9 +514,15 @@ export function useNotes() {
       if (name.endsWith('.txt')) name = name.slice(0, -4);
       setNotes(prev => prev.map(n =>
         n.id === idToSave
-          ? { ...n, filePath: targetPath, name: name, isDirty: false }
+          ? { ...n, filePath: targetPath, name: name, isDirty: false, isLocked: false, encryptedContent: null }
           : n
       ));
+      sessionPasswordsRef.current.delete(idToSave);
+      setSessionUnlockedIds(prev => {
+        const next = new Set(prev);
+        next.delete(idToSave);
+        return next;
+      });
     } else {
       alert("Gagal menyimpan file!");
     }

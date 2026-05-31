@@ -200,6 +200,9 @@ function App() {
   };
 
   const handleTabUnlock = async (password) => {
+    if (!verifyPassword(password, masterPasswordHash)) {
+      return false;
+    }
     const success = unlockForSession(activeId, password);
     if (success) {
       setShowUnlockModal(false);
@@ -209,7 +212,7 @@ function App() {
   };
 
   const handleToggleLock = () => {
-    if (!activeNote) return;
+    if (!activeNote || activeNote.filePath) return;
     if (activeNote.isLocked) {
       if (sessionUnlockedIds.has(activeId)) {
         // If it's already unlocked for viewing, completely remove the lock
@@ -303,6 +306,7 @@ function App() {
             onToggleLock={handleToggleLock}
             onExportTXT={handleExportTXT}
             isLocked={activeNote?.isLocked}
+            isExternal={!!activeNote?.filePath}
           />
 
           <div
