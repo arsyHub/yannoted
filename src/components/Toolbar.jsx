@@ -22,7 +22,7 @@ const Toolbar = ({ editor, onToggleSidebar, onToggleDark, onToggleLock, onExport
   const Divider = () => <div className="w-px h-5 bg-[var(--border)] mx-1 shrink-0" />;
 
   return (
-    <div className="flex items-center px-2 py-1.5 bg-[var(--bg-primary)] border-b border-[var(--border)] overflow-x-auto custom-scrollbar gap-0.5">
+    <div className="flex items-center px-2 py-1.5 bg-[var(--bg-primary)]/80 backdrop-blur-md border-b border-[var(--border)] overflow-x-auto slim-scrollbar gap-0.5 z-10 sticky top-0">
       {/* Undo / Redo */}
       <ToolbarButton onClick={() => editor.chain().focus().undo().run()} disabled={!editor.can().undo()} title="Undo">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 7v6h6"></path><path d="M21 17a9 9 0 00-9-9 9 9 0 00-6 2.3L3 13"></path></svg>

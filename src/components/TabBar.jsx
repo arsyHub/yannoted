@@ -1,9 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 
-const TabBar = ({ tabs, activeId, onSelect, onClose, onAdd, onRename, onReorderTabs }) => {
+const TabBar = ({ tabs, activeId, onSelect, onClose, onCloseAll, onAdd, onRename, onReorderTabs }) => {
   const [editingId, setEditingId] = useState(null);
   const [editValue, setEditValue] = useState('');
   const [draggedIdx, setDraggedIdx] = useState(null);
+  const [contextMenu, setContextMenu] = useState(null);
   const inputRef = useRef(null);
   const activeTabRef = useRef(null);
   const containerRef = useRef(null);
@@ -60,7 +61,7 @@ const TabBar = ({ tabs, activeId, onSelect, onClose, onAdd, onRename, onReorderT
   };
 
   return (
-    <div ref={containerRef} className="flex bg-[var(--bg-secondary)] border-b border-[var(--border)] overflow-x-auto overflow-y-hidden select-none h-9 custom-scrollbar">
+    <div ref={containerRef} className="flex bg-[var(--bg-secondary)] border-b border-[var(--border)] overflow-x-auto overflow-y-hidden select-none h-9 slim-scrollbar">
       {tabs.map((tab, idx) => {
         const isActive = activeId === tab.id;
         const isEditing = editingId === tab.id;
@@ -76,6 +77,10 @@ const TabBar = ({ tabs, activeId, onSelect, onClose, onAdd, onRename, onReorderT
             onDrop={(e) => handleDrop(e, idx)}
             onDragEnd={handleDragEnd}
             onClick={() => !isEditing && onSelect(tab.id)}
+            onContextMenu={(e) => {
+              e.preventDefault();
+              setContextMenu({ x: e.clientX, y: e.clientY, tabId: tab.id });
+            }}
             onDoubleClick={() => handleDoubleClick(tab)}
             className={`group flex items-center min-w-[120px] max-w-[200px] px-3 border-r border-[var(--border)] rounded-t-lg cursor-pointer transition-colors ${isActive
               ? 'bg-[var(--bg-primary)] border-b-2 border-b-[var(--accent)] text-[var(--text-primary)]'
@@ -133,6 +138,46 @@ const TabBar = ({ tabs, activeId, onSelect, onClose, onAdd, onRename, onReorderT
           <line x1="5" y1="12" x2="19" y2="12"></line>
         </svg>
       </button>
+
+      {contextMenu && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setContextMenu(null)}></div>
+          <div 
+            className="fixed z-50 bg-[var(--bg-primary)] border border-[var(--border)] rounded-md shadow-lg py-1 min-w-[150px] flex flex-col"
+            style={{ top: contextMenu.y, left: contextMenu.x }}
+          >
+            <button 
+              className="text-left px-4 py-2 text-xs text-[var(--text-primary)] hover:bg-[var(--bg-tertiary)] transition-colors"
+              onClick={() => {
+                onClose(contextMenu.tabId);
+                setContextMenu(null);
+              }}
+            >
+              Tutup Tab Ini
+            </button>
+            <button 
+              className="text-left px-4 py-2 text-xs text-[var(--text-primary)] hover:bg-[var(--bg-tertiary)] transition-colors"
+              onClick={() => {
+                const otherTabs = tabs.filter(t => t.id !== contextMenu.tabId);
+                otherTabs.forEach(t => onClose(t.id));
+                setContextMenu(null);
+              }}
+            >
+              Tutup Tab Lainnya
+            </button>
+            <div className="h-px bg-[var(--border)] my-1"></div>
+            <button 
+              className="text-left px-4 py-2 text-xs text-[#f38ba8] hover:bg-[#f38ba8]/10 transition-colors"
+              onClick={() => {
+                onCloseAll();
+                setContextMenu(null);
+              }}
+            >
+              Tutup Semua Tab
+            </button>
+          </div>
+        </>
+      )}
     </div>
   );
 };

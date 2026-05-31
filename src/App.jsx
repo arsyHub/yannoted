@@ -44,7 +44,8 @@ function App() {
     removeAllLocks,
     sessionUnlockedIds,
     openExternalFile,
-    saveNoteToFile
+    saveNoteToFile,
+    closeAllTabs
   } = useNotes();
 
   const { toggleTheme } = useTheme();
@@ -294,6 +295,7 @@ function App() {
             activeId={activeId}
             onSelect={setActiveId}
             onClose={closeTab}
+            onCloseAll={closeAllTabs}
             onAdd={addNote}
             onRename={renameNote}
             onReorderTabs={reorderTabs}

@@ -218,6 +218,11 @@ export function useNotes() {
     });
   };
 
+  const closeAllTabs = () => {
+    setOpenTabIds([]);
+    setActiveId(null);
+  };
+
   // Fix 1.2: Completely refactored — no nested setState
   const deleteNotePermanently = (id) => {
     const remainingNotes = notes.filter(n => n.id !== id);
@@ -536,6 +541,7 @@ export function useNotes() {
     addNote,
     openNote,
     closeTab,
+    closeAllTabs,
     deleteNotePermanently,
     emptyTrash,
     archiveNote,

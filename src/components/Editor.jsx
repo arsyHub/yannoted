@@ -220,9 +220,9 @@ const Editor = ({ note, onContentChange, onEditorReady, isSessionUnlocked }) => 
       <div 
         ref={scrollRef}
         onScroll={handleScroll}
-        className="flex-1 bg-[var(--bg-primary)] text-[var(--text-primary)] overflow-y-auto custom-scrollbar p-8"
+        className="flex-1 bg-[var(--bg-primary)] text-[var(--text-primary)] overflow-y-auto custom-scrollbar px-12 py-10"
       >
-        <div className="max-w-4xl mx-auto h-full">
+        <div className="max-w-3xl mx-auto h-full">
           <EditorContent editor={editor} className="h-full" />
         </div>
       </div>

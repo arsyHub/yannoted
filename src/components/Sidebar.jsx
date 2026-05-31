@@ -132,53 +132,34 @@ const Sidebar = ({ notes, activeId, onOpenNote, onTrashNote, onArchiveNote, onRe
         <div className="flex gap-0.5">
           <button
             onClick={onOpenFile}
-            className="text-[var(--text-primary)] hover:text-[var(--accent)] transition-colors p-1 rounded hover:bg-[var(--bg-tertiary)]"
-            title="Buka File .txt"
+            className="text-[var(--text-primary)] hover:text-[var(--accent)] transition-all active:scale-90 p-1 rounded hover:bg-[var(--bg-tertiary)]"
+            title="Buka File .txt (Ctrl+O)"
           >
             <FolderOpen size={16} />
           </button>
           <button
             onClick={onSaveFile}
-            className="text-[var(--text-primary)] hover:text-[var(--accent)] transition-colors p-1 rounded hover:bg-[var(--bg-tertiary)]"
-            title="Simpan File"
+            className="text-[var(--text-primary)] hover:text-[var(--accent)] transition-all active:scale-90 p-1 rounded hover:bg-[var(--bg-tertiary)]"
+            title="Simpan File (Ctrl+S)"
           >
             <Save size={16} />
           </button>
-          <button
-            onClick={onAdd}
-            className="text-[var(--text-primary)] hover:text-[var(--accent)] transition-colors p-1 rounded hover:bg-[var(--bg-tertiary)]"
-            title="Catatan Baru"
-          >
-            <Plus size={16} />
-          </button>
         </div>
       </div>
 
-      {/* View Tabs */}
-      <div className="px-2 pt-2 min-w-[18rem]">
-        <div className="flex bg-[var(--bg-tertiary)] p-0.5 rounded-md">
-          {[
-            { id: 'active', label: `Semua (${activeCount})`, icon: FileText },
-            { id: 'archived', label: `Arsip (${archivedCount})`, icon: Archive },
-            { id: 'trash', label: `Sampah (${trashCount})`, icon: Trash2 }
-          ].map(tab => {
-            const Icon = tab.icon;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setCurrentView(tab.id)}
-                className={`flex-1 flex items-center justify-center gap-1 text-[11px] py-1 rounded transition-all duration-200 ${currentView === tab.id ? 'bg-[var(--bg-primary)] text-[var(--text-primary)] shadow-sm font-medium' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'}`}
-              >
-                <Icon size={12} />
-                {tab.label}
-              </button>
-            );
-          })}
-        </div>
+      {/* Primary CTA - New Note */}
+      <div className="px-3 pt-1 pb-3 min-w-[18rem]">
+        <button
+          onClick={onAdd}
+          className="w-full flex items-center justify-center gap-2 bg-[var(--accent)] text-white py-1.5 px-4 rounded-lg text-[13px] font-semibold transition-all hover:opacity-90 active:scale-[0.98] shadow-sm shadow-[var(--accent-border)]"
+        >
+          <Plus size={15} strokeWidth={2.5} />
+          Catatan Baru
+        </button>
       </div>
 
       {/* Search Bar & Sorting */}
-      <div className="p-2 min-w-[18rem] flex flex-col gap-2">
+      <div className="px-2 pt-2 min-w-[18rem] flex flex-col gap-2">
         <div className="flex items-center gap-1.5">
           <div className="relative flex-1">
             <Search className="absolute left-2.5 top-2 text-[var(--text-muted)]" size={14} />
@@ -225,6 +206,38 @@ const Sidebar = ({ notes, activeId, onOpenNote, onTrashNote, onArchiveNote, onRe
             )}
           </div>
         </div>
+      </div>
+
+      {/* View Tabs */}
+      <div className="px-1 pt-1 pb-1 min-w-[18rem] flex flex-col gap-0.5 border-b border-[var(--border)]">
+        {[
+          { id: 'active', label: 'Semua Catatan', count: activeCount, icon: FileText },
+          { id: 'archived', label: 'Arsip', count: archivedCount, icon: Archive },
+          { id: 'trash', label: 'Sampah', count: trashCount, icon: Trash2 }
+        ].map(tab => {
+          const Icon = tab.icon;
+          const isActive = currentView === tab.id;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setCurrentView(tab.id)}
+              className={`flex items-center justify-between py-1.5 px-3 mx-2 rounded-lg text-[13px] transition-all duration-200 active:scale-[0.98] ${isActive
+                ? 'bg-[var(--accent)]/15 text-[var(--accent)] font-semibold'
+                : 'text-[var(--text-muted)] hover:bg-[var(--bg-tertiary)]/50 hover:text-[var(--text-primary)]'
+                }`}
+            >
+              <div className="flex items-center gap-2.5">
+                <Icon size={15} />
+                <span>{tab.label}</span>
+              </div>
+              {tab.count > 0 && (
+                <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${isActive ? 'bg-[var(--accent)]/20' : 'bg-[var(--bg-tertiary)]'}`}>
+                  {tab.count}
+                </span>
+              )}
+            </button>
+          );
+        })}
       </div>
 
       {/* Notes List */}
