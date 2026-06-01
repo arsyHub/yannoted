@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-const StatusBar = ({ editor, noteName, noteFilePath, fontSize = 14 }) => {
+const StatusBar = ({ editor, noteName, noteFilePath, fontSize = 14, noteCreatedAt }) => {
   const [stats, setStats] = useState({
     words: 0,
     chars: 0,
@@ -129,6 +129,16 @@ const StatusBar = ({ editor, noteName, noteFilePath, fontSize = 14 }) => {
         </span>
 
         {sep()}
+
+        {/* Creation Date */}
+        {noteCreatedAt && (
+          <>
+            <span title="Tanggal dibuat">
+              {new Date(noteCreatedAt).toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+            </span>
+            {sep()}
+          </>
+        )}
 
         <span className="opacity-60">UTF-8</span>
       </div>

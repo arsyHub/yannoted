@@ -337,6 +337,7 @@ function App() {
             noteName={activeNote?.name} 
             noteFilePath={activeNote?.filePath}
             fontSize={fontSize}
+            noteCreatedAt={activeNote?.createdAt}
           />
         </main>
       </div>
