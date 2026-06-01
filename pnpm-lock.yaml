@@ -65,6 +65,9 @@ importers:
       tippy.js:
         specifier: ^6.3.7
         version: 6.3.7
+      tiptap-extension-resize-image:
+        specifier: ^1.4.0
+        version: 1.4.0(@tiptap/core@3.23.6(@tiptap/pm@3.23.6))(@tiptap/extension-image@3.24.0(@tiptap/core@3.23.6(@tiptap/pm@3.23.6)))(@tiptap/pm@3.23.6)
       uuid:
         specifier: ^14.0.0
         version: 14.0.0
@@ -2574,6 +2577,13 @@ packages:
 
   tippy.js@6.3.7:
     resolution: {integrity: sha512-E1d3oP2emgJ9dRQZdf3Kkn0qJgI6ZLpyS5z6ZkY1DF3kaQaBsGZsndEpHwx+eC+tYM41HaSNvNtLx8tU57FzTQ==}
+
+  tiptap-extension-resize-image@1.4.0:
+    resolution: {integrity: sha512-4CbzgJyY0xyRGGXUa1JmC9KQwdFN5OgFahbvnn+5IRpbLH1yfbDVEHZ6WSLA42qiwtxOoa6XUSqkTS/QMULQYQ==}
+    peerDependencies:
+      '@tiptap/core': ^2.0.0 || ^3.0.0
+      '@tiptap/extension-image': ^2.0.0 || ^3.0.0
+      '@tiptap/pm': ^2.0.0 || ^3.0.0
 
   tmp-promise@3.0.3:
     resolution: {integrity: sha512-RwM7MoPojPxsOBYnyd2hy0bxtIlVrihNs9pj5SUvY8Zz1sQcQG2tG1hSr8PDxfgEB8RNKDhqbIlroIarSNDNsQ==}
@@ -5531,6 +5541,12 @@ snapshots:
   tippy.js@6.3.7:
     dependencies:
       '@popperjs/core': 2.11.8
+
+  tiptap-extension-resize-image@1.4.0(@tiptap/core@3.23.6(@tiptap/pm@3.23.6))(@tiptap/extension-image@3.24.0(@tiptap/core@3.23.6(@tiptap/pm@3.23.6)))(@tiptap/pm@3.23.6):
+    dependencies:
+      '@tiptap/core': 3.23.6(@tiptap/pm@3.23.6)
+      '@tiptap/extension-image': 3.24.0(@tiptap/core@3.23.6(@tiptap/pm@3.23.6))
+      '@tiptap/pm': 3.23.6
 
   tmp-promise@3.0.3:
     dependencies:

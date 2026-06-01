@@ -274,8 +274,8 @@ const Sidebar = ({ notes, activeId, onOpenNote, onTrashNote, onArchiveNote, onRe
                 : 'text-[var(--text-muted)] hover:bg-[var(--bg-tertiary)]/50 hover:text-[var(--text-primary)]'
                 } ${draggedIdx === idx ? 'opacity-50' : ''}`}
             >
-              <div className="flex items-center gap-3 flex-1 min-w-0">
-                <FileText size={15} strokeWidth={2} className={activeId === note.id ? 'text-[var(--text-primary)]' : 'text-[var(--text-muted)]'} />
+              <div className="flex items-center gap-2.5 flex-1 min-w-0">
+                <FileText size={15} strokeWidth={2} className={activeId === note.id ? 'text-[var(--text-primary)] shrink-0' : 'text-[var(--text-muted)] shrink-0'} />
                 {editingId === note.id ? (
                   <input
                     ref={inputRef}
@@ -284,23 +284,25 @@ const Sidebar = ({ notes, activeId, onOpenNote, onTrashNote, onArchiveNote, onRe
                     onChange={(e) => setEditValue(e.target.value)}
                     onBlur={saveRename}
                     onKeyDown={handleKeyDown}
-                    className="flex-1 bg-[var(--bg-primary)] border border-[var(--border)] rounded px-1 outline-none text-[13px] text-[var(--text-primary)]"
+                    className="flex-1 min-w-0 bg-[var(--bg-primary)] border border-[var(--border)] rounded px-1 outline-none text-[13px] text-[var(--text-primary)]"
                     onClick={(e) => e.stopPropagation()}
                   />
                 ) : (
-                  <span
-                    onDoubleClick={(e) => { e.stopPropagation(); handleDoubleClick(note); }}
-                    className={`text-[13px] truncate flex-1 ${activeId === note.id ? 'font-medium' : ''}`}
-                    title="Double click untuk ubah nama"
-                  >
-                    {note.name}
-                  </span>
-                )}
-                {note.isDirty && (
-                  <span className="w-1.5 h-1.5 rounded-full bg-[var(--text-muted)] flex-shrink-0 mr-1" title="Unsaved changes"></span>
-                )}
-                {note.isLocked && (
-                  <Lock size={12} color="var(--lock-color)" className="shrink-0" />
+                  <div className="flex items-center gap-2 min-w-0 flex-1">
+                    <span
+                      onDoubleClick={(e) => { e.stopPropagation(); handleDoubleClick(note); }}
+                      className={`text-[13px] truncate ${activeId === note.id ? 'font-medium' : ''}`}
+                      title="Double click untuk ubah nama"
+                    >
+                      {note.name}
+                    </span>
+                    {note.isDirty && (
+                      <span className="w-1.5 h-1.5 rounded-full bg-[var(--text-muted)] flex-shrink-0" title="Unsaved changes"></span>
+                    )}
+                    {note.isLocked && (
+                      <Lock size={12} color="var(--lock-color)" className="shrink-0" />
+                    )}
+                  </div>
                 )}
               </div>
               

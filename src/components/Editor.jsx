@@ -10,7 +10,7 @@ import { TextStyle } from '@tiptap/extension-text-style';
 import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
 import TaskList from '@tiptap/extension-task-list';
 import TaskItem from '@tiptap/extension-task-item';
-import Image from '@tiptap/extension-image';
+import ImageResize from 'tiptap-extension-resize-image';
 import { createLowlight } from 'lowlight';
 import javascript from 'highlight.js/lib/languages/javascript';
 import typescript from 'highlight.js/lib/languages/typescript';
@@ -91,7 +91,7 @@ const Editor = ({ note, onContentChange, onEditorReady, isSessionUnlocked }) => 
         nested: true,
       }),
       Placeholder.configure({ placeholder: 'Mulai mengetik catatan Anda di sini...' }),
-      Image.configure({
+      ImageResize.configure({
         inline: true,
         allowBase64: true,
       }),
