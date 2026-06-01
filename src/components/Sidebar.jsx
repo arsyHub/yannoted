@@ -133,11 +133,11 @@ const Sidebar = ({ notes, activeId, onOpenNote, onTrashNote, onArchiveNote, onRe
 
   return (
     <aside
-      className={`bg-[var(--bg-secondary)] border-r border-[var(--border)] transition-all duration-300 flex flex-col overflow-hidden z-10 ${isOpen ? 'w-[280px]' : 'w-0'
+      className={`bg-[var(--bg-secondary)] border-r border-[var(--border)] transition-all duration-300 flex flex-col overflow-hidden z-10 ${isOpen ? 'w-[260px]' : 'w-0'
         }`}
     >
       {/* Header Sidebar */}
-      <div className="px-5 pt-5 pb-4 flex justify-between items-center whitespace-nowrap min-w-[280px]">
+      <div className="px-5 pt-5 pb-4 flex justify-between items-center whitespace-nowrap min-w-[260px]">
         <div className="flex items-center gap-2 select-none">
           <img src="./icon.png" alt="Yannoted Logo" className="w-5 h-5 drop-shadow-sm" />
           <h2 className="text-[var(--text-primary)] font-bold text-[14px] tracking-tight">Yannoted</h2>
@@ -161,7 +161,7 @@ const Sidebar = ({ notes, activeId, onOpenNote, onTrashNote, onArchiveNote, onRe
       </div>
 
       {/* Search Bar */}
-      <div className="px-5 pb-5 min-w-[280px]">
+      <div className="px-5 pb-5 min-w-[260px]">
         <div className="relative group flex items-center">
           <Search className="absolute left-3 text-[var(--text-muted)]" size={14} strokeWidth={2} />
           <input
@@ -179,7 +179,7 @@ const Sidebar = ({ notes, activeId, onOpenNote, onTrashNote, onArchiveNote, onRe
       </div>
 
       {/* Primary CTA - New Note */}
-      <div className="px-5 pb-5 min-w-[280px]">
+      <div className="px-5 pb-5 min-w-[260px]">
         <div className="flex rounded-md overflow-hidden bg-[var(--accent)] text-white h-[36px]">
           <button
             onClick={onAdd}
@@ -223,7 +223,7 @@ const Sidebar = ({ notes, activeId, onOpenNote, onTrashNote, onArchiveNote, onRe
       </div>
 
       {/* View Tabs */}
-      <div className="px-3 min-w-[280px] flex flex-col gap-0.5 pb-2">
+      <div className="px-3 min-w-[260px] flex flex-col gap-0.5 pb-2">
         {[
           { id: 'active', label: 'Semua Catatan', count: activeCount, icon: FileText },
           { id: 'archived', label: 'Arsip', count: archivedCount, icon: Archive },
@@ -253,13 +253,13 @@ const Sidebar = ({ notes, activeId, onOpenNote, onTrashNote, onArchiveNote, onRe
       </div>
 
       {/* Notes List Header */}
-      <div className="px-5 py-3 mt-4 min-w-[280px] flex justify-between items-center text-[10px] font-semibold text-[var(--text-muted)] uppercase tracking-widest">
+      <div className="px-5 py-3 mt-4 min-w-[260px] flex justify-between items-center text-[10px] font-semibold text-[var(--text-muted)] uppercase tracking-widest">
         <span>Catatan</span>
         <button onClick={onAdd} className="hover:text-[var(--text-primary)] transition-colors"><Plus size={14}/></button>
       </div>
 
       {/* Notes List */}
-      <div className="flex-1 overflow-y-auto min-w-[280px] custom-scrollbar px-3 pb-4 space-y-0.5">
+      <div className="flex-1 overflow-y-auto min-w-[260px] custom-scrollbar px-3 pb-4 space-y-0.5">
         {filteredNotes.map((note, idx) => (
           <React.Fragment key={note.id}>
             <div
@@ -375,7 +375,7 @@ const Sidebar = ({ notes, activeId, onOpenNote, onTrashNote, onArchiveNote, onRe
 
       {/* Empty Trash CTA */}
       {currentView === 'trash' && filteredNotes.length > 0 && (
-        <div className="px-5 py-3 border-t border-[var(--border)] bg-[var(--bg-secondary)] min-w-[280px]">
+        <div className="px-5 py-3 border-t border-[var(--border)] bg-[var(--bg-secondary)] min-w-[260px]">
           {confirmEmptyTrash ? (
             <div className="flex gap-2">
               <button onClick={() => { onEmptyTrash(); setConfirmEmptyTrash(false); }} className="flex-1 text-[11px] font-medium bg-[#ff5f56] text-white rounded py-1.5">Kosongkan Semua</button>
@@ -390,7 +390,7 @@ const Sidebar = ({ notes, activeId, onOpenNote, onTrashNote, onArchiveNote, onRe
       )}
 
       {/* Footer Sidebar */}
-      <div className="px-5 h-[38px] shrink-0 border-t border-[var(--border)] flex justify-between items-center min-w-[280px]">
+      <div className="px-5 h-[38px] shrink-0 border-t border-[var(--border)] flex justify-between items-center min-w-[260px]">
         <div className="flex gap-2">
           <button onClick={onOpenSettings} className="text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors" title="Settings">
             <Settings size={15} strokeWidth={2} />
