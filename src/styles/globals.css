@@ -473,3 +473,10 @@ ul[data-type="taskList"] input[type="checkbox"] {
   border-radius: 2px;
   outline: 1px solid rgba(255, 140, 0, 0.9);
 }
+
+/* Selection Match Highlight */
+.selection-match-highlight {
+  background-color: rgba(128, 128, 128, 0.45);
+  border-radius: 2px;
+  outline: 1px solid rgba(128, 128, 128, 0.6);
+}

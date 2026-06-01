@@ -22,6 +22,7 @@ import bash from 'highlight.js/lib/languages/bash';
 import sql from 'highlight.js/lib/languages/sql';
 import { Spoiler } from '../extensions/Spoiler';
 import { SearchHighlight } from '../extensions/SearchHighlight';
+import { SelectionMatchHighlight } from '../extensions/SelectionMatchHighlight';
 import { BracketMatch } from '../extensions/BracketMatch';
 import SlashCommand from '../extensions/SlashCommand';
 
@@ -97,6 +98,7 @@ const Editor = ({ note, onContentChange, onEditorReady, isSessionUnlocked }) => 
       }),
       Spoiler,
       SearchHighlight,
+      SelectionMatchHighlight,
       BracketMatch,
       SlashCommand,
     ],
