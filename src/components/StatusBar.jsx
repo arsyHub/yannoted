@@ -32,8 +32,9 @@ const StatusBar = ({ editor, noteName, noteFilePath, fontSize = 14, noteCreatedA
       const textBefore = doc.textBetween(0, from, '\n');
       cursorLine = (textBefore.match(/\n/g) || []).length + 1;
 
-      // Selected chars
-      const selectedChars = from !== to ? Math.abs(to - from) : 0;
+      // Selected chars — use actual text content, not ProseMirror positions
+      const selectedText = from !== to ? doc.textBetween(from, to, '\n') : '';
+      const selectedChars = selectedText.length;
 
       setStats({ words, chars, lines, cursorLine, cursorCol, selectedChars });
     };
