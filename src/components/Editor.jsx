@@ -151,6 +151,19 @@ const Editor = ({ note, onContentChange, onEditorReady, isSessionUnlocked }) => 
     editable: note ? note.status === 'active' : true,
     onUpdate: ({ editor }) => {
       onContentChange(editor.getHTML());
+
+      // Fix: after Ctrl+A + Delete, ProseMirror keeps an AllSelection on the
+      // empty doc (blue highlight, can't type/enter). Simulate typing a char
+      // then deleting it to force ProseMirror to fully reset its state.
+      if (editor.isEmpty) {
+        const { from, to } = editor.state.selection;
+        if (from !== to || from === 0) {
+          requestAnimationFrame(() => {
+            editor.chain().focus().insertContent(' ').run();
+            editor.chain().deleteRange({ from: 1, to: 2 }).setTextSelection(1).run();
+          });
+        }
+      }
     },
     onSelectionUpdate: ({ editor }) => {
       if (note) {

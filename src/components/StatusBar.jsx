@@ -14,7 +14,8 @@ const StatusBar = ({ editor, noteName, noteFilePath, fontSize = 14, noteCreatedA
     if (!editor) return;
 
     const updateStats = () => {
-      const text = editor.getText();
+      // Menggunakan blockSeparator \n agar baris dan karakter akurat seperti editor biasa
+      const text = editor.getText({ blockSeparator: '\n' });
       const { selection, doc } = editor.state;
       const { from, to } = selection;
 
@@ -25,12 +26,36 @@ const StatusBar = ({ editor, noteName, noteFilePath, fontSize = 14, noteCreatedA
 
       // Cursor position: resolve current ProseMirror position
       const resolved = doc.resolve(from);
-      let cursorLine = 1;
-      let cursorCol = resolved.parentOffset + 1;
+      
+      let cursorCol = 1;
+      if (resolved.parent.type.name === 'doc') {
+        cursorCol = 1;
+      } else {
+        const textInBlockBefore = doc.textBetween(
+          resolved.start(), 
+          from, 
+          '\n', 
+          node => node.type.name === 'hard_break' ? '\n' : ''
+        );
+        const lastNewlineIndex = textInBlockBefore.lastIndexOf('\n');
+        cursorCol = lastNewlineIndex !== -1 
+          ? textInBlockBefore.length - lastNewlineIndex 
+          : textInBlockBefore.length + 1;
+      }
 
-      // Count lines up to current position
-      const textBefore = doc.textBetween(0, from, '\n');
-      cursorLine = (textBefore.match(/\n/g) || []).length + 1;
+      // Count lines up to current position accurately based on block nodes
+      let cursorLine = 1;
+      doc.nodesBetween(0, from, (node, pos, parent, index) => {
+        if (pos > from) return false;
+        if (node.isText) {
+          const textNode = node.text.slice(0, Math.max(0, from - pos));
+          cursorLine += (textNode.match(/\n/g) || []).length;
+        } else if (node.type.name === 'hard_break') {
+          cursorLine++;
+        } else if (node.isBlock && parent && index > 0) {
+          cursorLine++;
+        }
+      });
 
       // Selected chars — use actual text content, not ProseMirror positions
       const selectedText = from !== to ? doc.textBetween(from, to, '\n') : '';
