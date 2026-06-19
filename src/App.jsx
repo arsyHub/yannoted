@@ -64,6 +64,7 @@ function App() {
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [showShortcutsModal, setShowShortcutsModal] = useState(false);
   const [showFindReplace, setShowFindReplace] = useState(false);
+  const [focusMode, setFocusMode] = useState(false);
   const [contextMenu, setContextMenu] = useState(null); // { x, y }
   const [showMasterPasswordPrompt, setShowMasterPasswordPrompt] = useState(false);
 
@@ -160,6 +161,13 @@ function App() {
         if (ed) {
           saveNoteToFile(activeIdRef.current, ed.getText());
         }
+      }
+      if (e.key === 'F11') {
+        e.preventDefault();
+        setFocusMode(p => !p);
+      }
+      if (e.key === 'Escape') {
+        setFocusMode(false);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -263,53 +271,71 @@ function App() {
 
   return (
     <div className="flex flex-col h-screen bg-[var(--bg-primary)] overflow-hidden">
-      <TitleBar />
+      {!focusMode && <TitleBar />}
 
       <div className="flex flex-1 overflow-hidden relative">
-        <Sidebar
-          isOpen={sidebarOpen}
-          notes={notes}
-          activeId={activeId}
-          onOpenNote={openNote}
-          onTrashNote={trashNote}
-          onArchiveNote={archiveNote}
-          onRestoreNote={restoreNote}
-          onDeleteNotePermanently={deleteNotePermanently}
-          onEmptyTrash={emptyTrash}
-          onTogglePin={togglePin}
-          onReorderNotes={reorderNotes}
-          onAdd={addNote}
-          onRename={renameNote}
-          onOpenSettings={() => setShowSettingsModal(true)}
-          onOpenShortcuts={() => setShowShortcutsModal(true)}
-          sessionUnlockedIds={sessionUnlockedIds}
-          onOpenFile={openExternalFile}
-          onSaveFile={() => {
-            if (editor) saveNoteToFile(activeId, editor.getText());
-          }}
-        />
-
-        <main className="flex-1 flex flex-col min-w-0">
-          <TabBar
-            tabs={openTabs}
+        {!focusMode && (
+          <Sidebar
+            isOpen={sidebarOpen}
+            notes={notes}
             activeId={activeId}
-            onSelect={setActiveId}
-            onClose={closeTab}
-            onCloseAll={closeAllTabs}
+            onOpenNote={openNote}
+            onTrashNote={trashNote}
+            onArchiveNote={archiveNote}
+            onRestoreNote={restoreNote}
+            onDeleteNotePermanently={deleteNotePermanently}
+            onEmptyTrash={emptyTrash}
+            onTogglePin={togglePin}
+            onReorderNotes={reorderNotes}
             onAdd={addNote}
             onRename={renameNote}
-            onReorderTabs={reorderTabs}
+            onOpenSettings={() => setShowSettingsModal(true)}
+            onOpenShortcuts={() => setShowShortcutsModal(true)}
+            sessionUnlockedIds={sessionUnlockedIds}
+            onOpenFile={openExternalFile}
+            onSaveFile={() => {
+              if (editor) saveNoteToFile(activeId, editor.getText());
+            }}
           />
+        )}
 
-          <Toolbar
-            editor={editor}
-            onToggleSidebar={() => setSidebarOpen(p => !p)}
-            onToggleDark={toggleTheme}
-            onToggleLock={handleToggleLock}
-            onExportTXT={handleExportTXT}
-            isLocked={activeNote?.isLocked}
-            isExternal={!!activeNote?.filePath}
-          />
+        <main className="flex-1 flex flex-col min-w-0 relative">
+          {focusMode && (
+            <button
+              onClick={() => setFocusMode(false)}
+              className="absolute top-4 right-4 z-50 p-2 bg-[var(--bg-tertiary)] hover:bg-[var(--accent)] text-[var(--text-muted)] hover:text-white rounded-full shadow-lg opacity-30 hover:opacity-100 transition-all focus:outline-none border border-[var(--border)]"
+              title="Keluar dari Focus Mode (Esc atau F11)"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"></path>
+              </svg>
+            </button>
+          )}
+
+          {!focusMode && (
+            <TabBar
+              tabs={openTabs}
+              activeId={activeId}
+              onSelect={setActiveId}
+              onClose={closeTab}
+              onCloseAll={closeAllTabs}
+              onAdd={addNote}
+              onRename={renameNote}
+              onReorderTabs={reorderTabs}
+            />
+          )}
+
+          {!focusMode && (
+            <Toolbar
+              editor={editor}
+              onToggleSidebar={() => setSidebarOpen(p => !p)}
+              onToggleDark={toggleTheme}
+              onToggleLock={handleToggleLock}
+              onExportTXT={handleExportTXT}
+              isLocked={activeNote?.isLocked}
+              isExternal={!!activeNote?.filePath}
+            />
+          )}
 
           <div
             className="flex-1 relative flex flex-col min-h-0"
@@ -332,13 +358,15 @@ function App() {
               isSessionUnlocked={sessionUnlockedIds.has(activeId)}
             />
           </div>
-          <StatusBar 
-            editor={editor} 
-            noteName={activeNote?.name} 
-            noteFilePath={activeNote?.filePath}
-            fontSize={fontSize}
-            noteCreatedAt={activeNote?.createdAt}
-          />
+          {!focusMode && (
+            <StatusBar 
+              editor={editor} 
+              noteName={activeNote?.name} 
+              noteFilePath={activeNote?.filePath}
+              fontSize={fontSize}
+              noteCreatedAt={activeNote?.createdAt}
+            />
+          )}
         </main>
       </div>
 

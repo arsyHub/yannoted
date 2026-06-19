@@ -25,6 +25,8 @@ import { SearchHighlight } from '../extensions/SearchHighlight';
 import { SelectionMatchHighlight } from '../extensions/SelectionMatchHighlight';
 import { BracketMatch } from '../extensions/BracketMatch';
 import SlashCommand from '../extensions/SlashCommand';
+import { MoveLine } from '../extensions/MoveLine';
+import { CutEmptyLine } from '../extensions/CutEmptyLine';
 
 const lowlight = createLowlight();
 lowlight.register('javascript', javascript);
@@ -101,49 +103,73 @@ const Editor = ({ note, onContentChange, onEditorReady, isSessionUnlocked }) => 
       SelectionMatchHighlight,
       BracketMatch,
       SlashCommand,
+      MoveLine,
+      CutEmptyLine,
     ],
     editorProps: {
       handlePaste: (view, event) => {
-        const items = Array.from(event.clipboardData?.items || []);
-        for (const item of items) {
-          if (item.type.indexOf('image') === 0) {
-            event.preventDefault();
-            const file = item.getAsFile();
-            if (file) {
-              const reader = new FileReader();
-              reader.onload = (e) => {
-                const schema = view.state.schema;
-                const node = schema.nodes.image.create({ src: e.target.result });
-                const transaction = view.state.tr.replaceSelectionWith(node);
-                view.dispatch(transaction);
-              };
-              reader.readAsDataURL(file);
-            }
-            return true;
-          }
+        const clipboardData = event.clipboardData;
+        if (!clipboardData) return false;
+
+        // Helper: masukkan gambar ke editor dari File object
+        const insertImage = (file) => {
+          const reader = new FileReader();
+          reader.onload = (readerEvent) => {
+            const src = readerEvent.target.result;
+            const nodeType = view.state.schema.nodes.imageResize || view.state.schema.nodes.image;
+            if (!nodeType) return;
+            view.dispatch(
+              view.state.tr.replaceSelectionWith(
+                nodeType.create({ src })
+              )
+            );
+          };
+          reader.readAsDataURL(file);
+        };
+
+        // Cek clipboardData.items (untuk screenshot, copy image dari browser, dll)
+        const items = Array.from(clipboardData.items || []);
+        const imageItem = items.find(item => item.type.startsWith('image/'));
+        if (imageItem) {
+          event.preventDefault();
+          const file = imageItem.getAsFile();
+          if (file) insertImage(file);
+          return true;
         }
+
+        // Cek clipboardData.files (fallback)
+        const files = Array.from(clipboardData.files || []);
+        const imageFile = files.find(f => f.type.startsWith('image/'));
+        if (imageFile) {
+          event.preventDefault();
+          insertImage(imageFile);
+          return true;
+        }
+
         return false;
       },
       handleDrop: (view, event, slice, moved) => {
-        if (!moved && event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files[0]) {
-          const file = event.dataTransfer.files[0];
-          if (file.type.indexOf('image') === 0) {
-            event.preventDefault();
-            const reader = new FileReader();
-            reader.onload = (e) => {
-              const schema = view.state.schema;
-              const coordinates = view.posAtCoords({ left: event.clientX, top: event.clientY });
-              if (coordinates) {
-                const node = schema.nodes.image.create({ src: e.target.result });
-                const transaction = view.state.tr.insert(coordinates.pos, node);
-                view.dispatch(transaction);
-              }
-            };
-            reader.readAsDataURL(file);
-            return true;
+        if (moved) return false;
+        const files = event.dataTransfer?.files;
+        if (!files || files.length === 0) return false;
+
+        const imageFile = Array.from(files).find(f => f.type.startsWith('image/'));
+        if (!imageFile) return false;
+
+        event.preventDefault();
+        const reader = new FileReader();
+        reader.onload = (readerEvent) => {
+          const src = readerEvent.target.result;
+          const nodeType = view.state.schema.nodes.imageResize || view.state.schema.nodes.image;
+          if (!nodeType) return;
+          const coordinates = view.posAtCoords({ left: event.clientX, top: event.clientY });
+          if (coordinates) {
+            const node = nodeType.create({ src });
+            view.dispatch(view.state.tr.insert(coordinates.pos, node));
           }
-        }
-        return false;
+        };
+        reader.readAsDataURL(imageFile);
+        return true;
       },
     },
     content: note ? note.content : '',

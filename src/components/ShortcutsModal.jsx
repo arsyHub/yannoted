@@ -9,12 +9,16 @@ const ShortcutsModal = ({ onClose }) => {
         { keys: ["Ctrl", "I"], desc: "Miring (Italic)" },
         { keys: ["Ctrl", "U"], desc: "Garis Bawah (Underline)" },
         { keys: ["Ctrl", "Shift", "X"], desc: "Coret (Strikethrough)" },
+        { keys: ["Alt", "↑ / ↓"], desc: "Pindah Baris ke Atas/Bawah" },
+        { keys: ["Ctrl", "X"], desc: "Cut Baris (Tanpa Blok)" },
       ]
     },
     {
       category: "Aplikasi",
       items: [
         { keys: ["Ctrl", "F"], desc: "Cari & Ganti (Find & Replace)" },
+        { keys: ["F11"], desc: "Toggle Focus Mode (Zen Mode)" },
+        { keys: ["Esc"], desc: "Keluar dari Focus Mode" },
       ]
     },
     {
