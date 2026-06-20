@@ -182,4 +182,4 @@ const TabBar = ({ tabs, activeId, onSelect, onClose, onCloseAll, onAdd, onRename
   );
 };
 
-export default TabBar;
+export default React.memo(TabBar);

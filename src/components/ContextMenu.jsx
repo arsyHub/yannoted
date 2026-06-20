@@ -1,6 +1,8 @@
 import React, { useEffect, useRef } from 'react';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const ContextMenu = ({ x, y, editor, onClose }) => {
+  const { t } = useLanguage();
   const menuRef = useRef(null);
 
   // Close on click outside or Escape
@@ -59,19 +61,19 @@ const ContextMenu = ({ x, y, editor, onClose }) => {
     >
       {/* Clipboard */}
       <Item
-        label="Potong"
+        label={t('cut')}
         shortcut="Ctrl+X"
         disabled={!hasSelection}
         onClick={() => run(() => document.execCommand('cut'))}
       />
       <Item
-        label="Salin"
+        label={t('copy')}
         shortcut="Ctrl+C"
         disabled={!hasSelection}
         onClick={() => run(() => document.execCommand('copy'))}
       />
       <Item
-        label="Tempel"
+        label={t('paste')}
         shortcut="Ctrl+V"
         onClick={() => run(() => {
           editor.chain().focus().run();
@@ -79,7 +81,7 @@ const ContextMenu = ({ x, y, editor, onClose }) => {
         })}
       />
       <Item
-        label="Pilih Semua"
+        label={t('selectAll')}
         shortcut="Ctrl+A"
         onClick={() => run(() => editor.chain().focus().selectAll().run())}
       />
@@ -88,22 +90,22 @@ const ContextMenu = ({ x, y, editor, onClose }) => {
 
       {/* Formatting */}
       <Item
-        label="Tebal"
+        label={t('boldMenu')}
         shortcut="Ctrl+B"
         onClick={() => run(() => editor.chain().focus().toggleBold().run())}
       />
       <Item
-        label="Miring"
+        label={t('italicMenu')}
         shortcut="Ctrl+I"
         onClick={() => run(() => editor.chain().focus().toggleItalic().run())}
       />
       <Item
-        label="Garis Bawah"
+        label={t('underlineMenu')}
         shortcut="Ctrl+U"
         onClick={() => run(() => editor.chain().focus().toggleUnderline().run())}
       />
       <Item
-        label="Coret"
+        label={t('strikethroughMenu')}
         onClick={() => run(() => editor.chain().focus().toggleStrike().run())}
       />
 
@@ -111,19 +113,19 @@ const ContextMenu = ({ x, y, editor, onClose }) => {
 
       {/* Blocks */}
       <Item
-        label="Inline Code"
+        label={t('inlineCode')}
         onClick={() => run(() => editor.chain().focus().toggleCode().run())}
       />
       <Item
-        label="Code Block"
+        label={t('codeBlockMenu')}
         onClick={() => run(() => editor.chain().focus().toggleCodeBlock().run())}
       />
       <Item
-        label="Bullet List"
+        label={t('bulletList')}
         onClick={() => run(() => editor.chain().focus().toggleBulletList().run())}
       />
       <Item
-        label="Numbered List"
+        label={t('orderedList')}
         onClick={() => run(() => editor.chain().focus().toggleOrderedList().run())}
       />
     </div>

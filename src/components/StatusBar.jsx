@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const StatusBar = ({ editor, noteName, noteFilePath, fontSize = 14, noteCreatedAt }) => {
+  const { t } = useLanguage();
   const [stats, setStats] = useState({
     words: 0,
     chars: 0,
@@ -9,6 +11,10 @@ const StatusBar = ({ editor, noteName, noteFilePath, fontSize = 14, noteCreatedA
     cursorCol: 1,
     selectedChars: 0,
   });
+
+  const [saveStatus, setSaveStatus] = useState('saved'); // 'saved', 'typing', 'saving'
+  const saveTimeoutRef = useRef(null);
+  const finishSaveTimeoutRef = useRef(null);
 
   useEffect(() => {
     if (!editor) return;
@@ -64,13 +70,31 @@ const StatusBar = ({ editor, noteName, noteFilePath, fontSize = 14, noteCreatedA
       setStats({ words, chars, lines, cursorLine, cursorCol, selectedChars });
     };
 
+    const handleUpdate = () => {
+      updateStats();
+      
+      // Auto-save feedback logic
+      setSaveStatus('typing');
+      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+      if (finishSaveTimeoutRef.current) clearTimeout(finishSaveTimeoutRef.current);
+      
+      saveTimeoutRef.current = setTimeout(() => {
+        setSaveStatus('saving');
+        finishSaveTimeoutRef.current = setTimeout(() => {
+          setSaveStatus('saved');
+        }, 600); // Tampilkan "Menyimpan..." selama 600ms
+      }, 1000); // Mulai menyimpan 1 detik setelah berhenti mengetik
+    };
+
     updateStats();
-    editor.on('update', updateStats);
+    editor.on('update', handleUpdate);
     editor.on('selectionUpdate', updateStats);
 
     return () => {
-      editor.off('update', updateStats);
+      editor.off('update', handleUpdate);
       editor.off('selectionUpdate', updateStats);
+      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+      if (finishSaveTimeoutRef.current) clearTimeout(finishSaveTimeoutRef.current);
     };
   }, [editor]);
 
@@ -100,19 +124,47 @@ const StatusBar = ({ editor, noteName, noteFilePath, fontSize = 14, noteCreatedA
             <span className="mx-2 opacity-30 shrink-0">|</span>
             <span 
               className="truncate opacity-50 hover:opacity-100 hover:text-[var(--accent)] cursor-pointer transition-colors max-w-[300px]"
-              title={`Buka Lokasi: ${noteFilePath}`}
+              title={`${t('openLocation')}: ${noteFilePath}`}
               onClick={() => window.electronAPI?.openFileLocation(noteFilePath)}
             >
               {noteFilePath}
             </span>
           </>
         )}
+
+        <span className="mx-2 opacity-30 shrink-0">|</span>
+        
+        {/* Auto Save Feedback */}
+        <div className="flex items-center w-24">
+          {saveStatus === 'typing' && (
+            <span className="flex items-center gap-1 opacity-70">
+              <span className="w-1.5 h-1.5 bg-[var(--accent)] rounded-full animate-pulse"></span>
+              {t('typing')}
+            </span>
+          )}
+          {saveStatus === 'saving' && (
+            <span className="flex items-center gap-1 text-[var(--accent)]">
+              <svg className="animate-spin w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+              </svg>
+              {t('saving')}
+            </span>
+          )}
+          {saveStatus === 'saved' && (
+            <span className="flex items-center gap-1 opacity-50">
+              <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+              {t('saved')}
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Right: stats */}
       <div className="flex items-center whitespace-nowrap">
         {/* Cursor position */}
-        <span title="Baris : Kolom">
+        <span title="Line : Col">
           Ln {stats.cursorLine}, Col {stats.cursorCol}
         </span>
 
@@ -121,30 +173,30 @@ const StatusBar = ({ editor, noteName, noteFilePath, fontSize = 14, noteCreatedA
         {/* Selection */}
         {stats.selectedChars > 0 ? (
           <>
-            <span title="Karakter terpilih" className="text-[var(--accent)]">
-              {stats.selectedChars} terpilih
+            <span title={`${stats.selectedChars} ${t('selected')}`} className="text-[var(--accent)]">
+              {stats.selectedChars} {t('selected')}
             </span>
             {sep()}
           </>
         ) : null}
 
         {/* Words */}
-        <span title="Jumlah kata">
-          {stats.words.toLocaleString('id-ID')} kata
+        <span title={t('words')}>
+          {stats.words.toLocaleString()} {t('words').toLowerCase()}
         </span>
 
         {sep()}
 
         {/* Chars */}
-        <span title="Jumlah karakter">
-          {stats.chars.toLocaleString('id-ID')} karakter
+        <span title={t('chars')}>
+          {stats.chars.toLocaleString()} {t('chars').toLowerCase()}
         </span>
 
         {sep()}
 
         {/* Lines */}
-        <span title="Jumlah baris">
-          {stats.lines.toLocaleString('id-ID')} baris
+        <span title={t('lines')}>
+          {stats.lines.toLocaleString()} {t('lines').toLowerCase()}
         </span>
 
         {sep()}
@@ -172,4 +224,4 @@ const StatusBar = ({ editor, noteName, noteFilePath, fontSize = 14, noteCreatedA
   );
 };
 
-export default StatusBar;
+export default React.memo(StatusBar);

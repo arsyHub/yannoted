@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../contexts/LanguageContext';
 
-const PasswordModal = ({ onSubmit, hint, onCancel, title = "Masukkan Password", description, submitText = "Buka Kunci", isAppLevel = false, isUsingDefault = false }) => {
+const PasswordModal = ({ onSubmit, hint, onCancel, title, description, submitText, isAppLevel = false, isUsingDefault = false }) => {
+  const { t } = useLanguage();
+  const defaultTitle = t('enterMasterPassword');
+  const defaultSubmitText = t('unlock');
   const [password, setPassword] = useState('');
   const [showHint, setShowHint] = useState(false);
   const [isShaking, setIsShaking] = useState(false);
@@ -16,7 +20,7 @@ const PasswordModal = ({ onSubmit, hint, onCancel, title = "Masukkan Password", 
 
     if (!success) {
       setIsShaking(true);
-      setErrorMsg('Password salah!');
+      setErrorMsg(t('incorrectPassword'));
       setPassword('');
       setTimeout(() => setIsShaking(false), 500);
     }
@@ -33,7 +37,7 @@ const PasswordModal = ({ onSubmit, hint, onCancel, title = "Masukkan Password", 
         className="bg-[var(--bg-secondary)] p-6 rounded-lg shadow-xl w-96 border border-[var(--border)] transition-all"
         style={{ WebkitAppRegion: 'no-drag' }}
       >
-        <h2 className="text-xl font-semibold mb-3 text-[var(--text-primary)] text-center">{title}</h2>
+        <h2 className="text-xl font-semibold mb-3 text-[var(--text-primary)] text-center">{title || defaultTitle}</h2>
 
         {description && (
           <div className="bg-[#ff5f56]/10 text-[#ff5f56] p-3 rounded text-sm mb-4 text-center border border-[#ff5f56]/20 leading-relaxed">
@@ -89,7 +93,7 @@ const PasswordModal = ({ onSubmit, hint, onCancel, title = "Masukkan Password", 
                 onClick={onCancel}
                 className="text-sm text-[var(--text-muted)] hover:text-[var(--text-primary)] outline-none ml-auto"
               >
-                Batal
+                {t('cancel')}
               </button>
             )}
           </div>
@@ -105,7 +109,7 @@ const PasswordModal = ({ onSubmit, hint, onCancel, title = "Masukkan Password", 
             disabled={isProcessing || !password}
             className="w-full bg-[var(--accent)] text-white font-medium py-2 rounded hover:opacity-90 transition-opacity disabled:opacity-50"
           >
-            {isProcessing ? 'Memproses...' : submitText}
+            {isProcessing ? 'Memproses...' : (submitText || defaultSubmitText)}
           </button>
         </form>
       </div>

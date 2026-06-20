@@ -17,6 +17,7 @@ import { useTheme } from './hooks/useTheme';
 import { useFontSize } from './hooks/useFontSize';
 import { storage } from './utils/storage';
 import { hashPassword, verifyPassword } from './utils/crypto';
+import { LanguageProvider } from './contexts/LanguageContext';
 
 function App() {
   const {
@@ -300,17 +301,30 @@ function App() {
         )}
 
         <main className="flex-1 flex flex-col min-w-0 relative">
+          {/* Drag Handle for Focus Mode */}
           {focusMode && (
-            <button
-              onClick={() => setFocusMode(false)}
-              className="absolute top-4 right-4 z-50 p-2 bg-[var(--bg-tertiary)] hover:bg-[var(--accent)] text-[var(--text-muted)] hover:text-white rounded-full shadow-lg opacity-30 hover:opacity-100 transition-all focus:outline-none border border-[var(--border)]"
-              title="Keluar dari Focus Mode (Esc atau F11)"
+            <div 
+              className="absolute top-0 left-0 w-full h-6 z-40 flex items-start justify-center group" 
+              style={{ WebkitAppRegion: 'drag' }}
             >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"></path>
-              </svg>
-            </button>
+              <div className="w-12 h-1 mt-1.5 bg-[var(--text-muted)] rounded-full opacity-20 group-hover:opacity-60 transition-opacity"></div>
+            </div>
           )}
+
+          <button
+            onClick={() => setFocusMode(p => !p)}
+            className={`absolute ${focusMode ? 'top-4' : 'top-[100px]'} right-4 z-50 p-2 bg-[var(--bg-tertiary)] hover:bg-[var(--accent)] text-[var(--text-muted)] hover:text-white rounded-full shadow-lg opacity-30 hover:opacity-100 transition-all focus:outline-none border border-[var(--border)]`}
+            title={focusMode ? "Keluar dari Focus Mode (Esc atau F11)" : "Masuk Focus Mode (F11)"}
+            style={{ WebkitAppRegion: 'no-drag' }}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              {focusMode ? (
+                <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"></path>
+              ) : (
+                <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+              )}
+            </svg>
+          </button>
 
           {!focusMode && (
             <TabBar
@@ -427,4 +441,10 @@ function App() {
   );
 }
 
-export default App;
+export default function AppWithProviders() {
+  return (
+    <LanguageProvider>
+      <App />
+    </LanguageProvider>
+  );
+}

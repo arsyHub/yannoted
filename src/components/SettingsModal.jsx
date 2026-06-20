@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import PasswordModal from './PasswordModal';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const SettingsModal = ({ 
   onClose, 
@@ -9,6 +10,7 @@ const SettingsModal = ({
   onRemoveMasterPassword,
   onChangeMasterPassword 
 }) => {
+  const { language, changeLanguage, t } = useLanguage();
   const [activeTab, setActiveTab] = useState('status'); // 'status', 'change', 'remove'
   
   // Set Password State (if not set)
@@ -87,13 +89,25 @@ const SettingsModal = ({
               <circle cx="12" cy="12" r="3"></circle>
               <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"></path>
             </svg>
-            Pengaturan
+            {t('settings')}
           </h2>
           <button onClick={onClose} className="text-[var(--text-muted)] hover:text-[var(--text-primary)]">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
           </button>
         </div>
         
+        <div className="mb-6 border-b border-[var(--border)] pb-4">
+          <h3 className="text-sm font-medium text-[var(--text-primary)] mb-2">{t('language')}</h3>
+          <select 
+            value={language}
+            onChange={(e) => changeLanguage(e.target.value)}
+            className="w-full bg-[var(--bg-primary)] text-[var(--text-primary)] border border-[var(--border)] rounded px-3 py-1.5 outline-none focus:border-[var(--accent)] text-sm cursor-pointer"
+          >
+            <option value="id">Bahasa Indonesia</option>
+            <option value="en">English</option>
+          </select>
+        </div>
+
         <div className="mb-4">
           <h3 className="text-sm font-medium text-[var(--text-primary)] mb-2 border-b border-[var(--border)] pb-1">Master Password</h3>
           

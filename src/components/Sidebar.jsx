@@ -1,8 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { stripHtml } from '../utils/stringUtils';
 import { Plus, Search, ListFilter, Check, Lock, Pin, Archive, Trash2, RotateCcw, XCircle, Settings, HelpCircle, FileText, FolderOpen, Save } from 'lucide-react';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const Sidebar = ({ notes, activeId, onOpenNote, onTrashNote, onArchiveNote, onRestoreNote, onDeleteNotePermanently, onEmptyTrash, onTogglePin, onReorderNotes, onAdd, onRename, onOpenSettings, onOpenShortcuts, isOpen, sessionUnlockedIds, onOpenFile, onSaveFile }) => {
+  const { t } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
   const [currentView, setCurrentView] = useState('active'); // 'active', 'archived', 'trash'
   const [sortOrder, setSortOrder] = useState('custom'); // 'custom', 'updatedAt', 'createdAt', 'alpha'
@@ -146,14 +148,14 @@ const Sidebar = ({ notes, activeId, onOpenNote, onTrashNote, onArchiveNote, onRe
           <button
             onClick={onOpenFile}
             className="text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors p-1 rounded hover:bg-[var(--bg-tertiary)]"
-            title="Buka File .txt (Ctrl+O)"
+            title={t('openTxtFile')}
           >
             <FolderOpen size={16} strokeWidth={2} />
           </button>
           <button
             onClick={onSaveFile}
             className="text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors p-1 rounded hover:bg-[var(--bg-tertiary)]"
-            title="Simpan File (Ctrl+S)"
+            title={t('saveFile')}
           >
             <Save size={16} strokeWidth={2} />
           </button>
@@ -167,7 +169,7 @@ const Sidebar = ({ notes, activeId, onOpenNote, onTrashNote, onArchiveNote, onRe
           <input
             ref={searchInputRef}
             type="text"
-            placeholder="Cari catatan..."
+            placeholder={t('searchNotes')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full h-[32px] bg-[var(--bg-primary)] text-[var(--text-primary)] text-[13px] rounded-md pl-9 pr-14 outline-none border border-[var(--border)] focus:border-[var(--text-muted)] transition-colors placeholder-[var(--text-muted)]"
@@ -186,13 +188,13 @@ const Sidebar = ({ notes, activeId, onOpenNote, onTrashNote, onArchiveNote, onRe
             className="flex-1 flex items-center justify-center gap-2 text-[13px] font-medium transition-colors hover:brightness-110"
           >
             <Plus size={15} strokeWidth={2.5} />
-            Catatan Baru
+            {t('newNote')}
           </button>
           <div className="w-[1px] bg-white/20 my-1.5"></div>
           <button
             onClick={() => setShowSortMenu(!showSortMenu)}
             className="px-2.5 flex items-center justify-center transition-colors hover:brightness-110"
-            title="Urutkan Catatan"
+            title={t('sortNotes')}
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
           </button>
@@ -203,10 +205,10 @@ const Sidebar = ({ notes, activeId, onOpenNote, onTrashNote, onArchiveNote, onRe
             <div className="fixed inset-0 z-40" onClick={() => setShowSortMenu(false)}></div>
             <div className="absolute right-0 top-1 w-48 bg-[var(--bg-primary)] border border-[var(--border)] rounded-md shadow-lg z-50 overflow-hidden flex flex-col py-1">
               {[
-                { id: 'custom', label: 'Manual (Drag & Drop)' },
-                { id: 'updatedAt', label: 'Terbaru Diubah' },
-                { id: 'createdAt', label: 'Terbaru Dibuat' },
-                { id: 'alpha', label: 'Sesuai Abjad (A-Z)' },
+                { id: 'custom', label: t('sortManual') },
+                { id: 'updatedAt', label: t('sortUpdated') },
+                { id: 'createdAt', label: t('sortCreated') },
+                { id: 'alpha', label: t('sortAlpha') },
               ].map(option => (
                 <button
                   key={option.id}
@@ -225,9 +227,9 @@ const Sidebar = ({ notes, activeId, onOpenNote, onTrashNote, onArchiveNote, onRe
       {/* View Tabs */}
       <div className="px-3 min-w-[260px] flex flex-col gap-0.5 pb-2">
         {[
-          { id: 'active', label: 'Semua Catatan', count: activeCount, icon: FileText },
-          { id: 'archived', label: 'Arsip', count: archivedCount, icon: Archive },
-          { id: 'trash', label: 'Sampah', count: trashCount, icon: Trash2 }
+          { id: 'active', label: t('allNotes'), count: activeCount, icon: FileText },
+          { id: 'archived', label: t('archivedNotes'), count: archivedCount, icon: Archive },
+          { id: 'trash', label: t('trash'), count: trashCount, icon: Trash2 }
         ].map(tab => {
           const Icon = tab.icon;
           const isActive = currentView === tab.id;
@@ -254,7 +256,7 @@ const Sidebar = ({ notes, activeId, onOpenNote, onTrashNote, onArchiveNote, onRe
 
       {/* Notes List Header */}
       <div className="px-5 py-3 mt-4 min-w-[260px] flex justify-between items-center text-[10px] font-semibold text-[var(--text-muted)] uppercase tracking-widest">
-        <span>Catatan</span>
+        <span>{t('notes')}</span>
         <button onClick={onAdd} className="hover:text-[var(--text-primary)] transition-colors"><Plus size={14}/></button>
       </div>
 
@@ -292,7 +294,7 @@ const Sidebar = ({ notes, activeId, onOpenNote, onTrashNote, onArchiveNote, onRe
                     <span
                       onDoubleClick={(e) => { e.stopPropagation(); handleDoubleClick(note); }}
                       className={`text-[13px] truncate ${activeId === note.id ? 'font-medium' : ''}`}
-                      title="Double click untuk ubah nama"
+                      title={t('doubleClickRename')}
                     >
                       {note.name}
                     </span>
@@ -313,21 +315,21 @@ const Sidebar = ({ notes, activeId, onOpenNote, onTrashNote, onArchiveNote, onRe
                     <button
                       onClick={(e) => { e.stopPropagation(); onTrashNote(note.id); }}
                       className="opacity-0 group-hover:opacity-100 p-1 text-[var(--text-muted)] hover:text-[#ff5f56] rounded transition-colors"
-                      title="Pindahkan ke Sampah"
+                      title={t('moveToTrash')}
                     >
                       <Trash2 size={13} />
                     </button>
                     <button
                       onClick={(e) => { e.stopPropagation(); onArchiveNote(note.id); }}
                       className="opacity-0 group-hover:opacity-100 p-1 text-[var(--text-muted)] hover:text-[var(--text-primary)] rounded transition-colors"
-                      title="Arsipkan Catatan"
+                      title={t('archiveNote')}
                     >
                       <Archive size={13} />
                     </button>
                     <button
                       onClick={(e) => { e.stopPropagation(); onTogglePin(note.id); }}
                       className={`p-1 rounded transition-colors ${note.isPinned ? 'text-[var(--text-primary)] opacity-100' : 'opacity-0 group-hover:opacity-100 text-[var(--text-muted)] hover:text-[var(--text-primary)]'}`}
-                      title={note.isPinned ? "Lepas Sematan" : "Sematkan Catatan"}
+                      title={note.isPinned ? t('unpinNote') : t('pinNote')}
                     >
                       <Pin size={13} className={note.isPinned ? "fill-current" : ""} />
                     </button>
@@ -335,20 +337,20 @@ const Sidebar = ({ notes, activeId, onOpenNote, onTrashNote, onArchiveNote, onRe
                 )}
                 {currentView === 'archived' && (
                   <div className="flex opacity-0 group-hover:opacity-100 gap-1">
-                    <button onClick={(e) => { e.stopPropagation(); onRestoreNote(note.id); }} className="p-1 text-[var(--text-muted)] hover:text-[var(--text-primary)] rounded transition-colors" title="Kembalikan">
+                    <button onClick={(e) => { e.stopPropagation(); onRestoreNote(note.id); }} className="p-1 text-[var(--text-muted)] hover:text-[var(--text-primary)] rounded transition-colors" title={t('restore')}>
                       <RotateCcw size={13} />
                     </button>
-                    <button onClick={(e) => { e.stopPropagation(); onTrashNote(note.id); }} className="p-1 text-[var(--text-muted)] hover:text-[#ff5f56] rounded transition-colors" title="Pindahkan ke Sampah">
+                    <button onClick={(e) => { e.stopPropagation(); onTrashNote(note.id); }} className="p-1 text-[var(--text-muted)] hover:text-[#ff5f56] rounded transition-colors" title={t('moveToTrash')}>
                       <Trash2 size={13} />
                     </button>
                   </div>
                 )}
                 {currentView === 'trash' && (
                   <div className="flex opacity-0 group-hover:opacity-100 gap-1">
-                    <button onClick={(e) => { e.stopPropagation(); onRestoreNote(note.id); }} className="p-1 text-[var(--text-muted)] hover:text-[var(--text-primary)] rounded transition-colors" title="Kembalikan">
+                    <button onClick={(e) => { e.stopPropagation(); onRestoreNote(note.id); }} className="p-1 text-[var(--text-muted)] hover:text-[var(--text-primary)] rounded transition-colors" title={t('restore')}>
                       <RotateCcw size={13} />
                     </button>
-                    <button onClick={(e) => { e.stopPropagation(); setConfirmDeleteId(note.id); }} className="p-1 text-[var(--text-muted)] hover:text-[#ff5f56] rounded transition-colors" title="Hapus Permanen">
+                    <button onClick={(e) => { e.stopPropagation(); setConfirmDeleteId(note.id); }} className="p-1 text-[var(--text-muted)] hover:text-[#ff5f56] rounded transition-colors" title={t('deletePermanently')}>
                       <XCircle size={13} />
                     </button>
                   </div>
@@ -359,17 +361,17 @@ const Sidebar = ({ notes, activeId, onOpenNote, onTrashNote, onArchiveNote, onRe
             {/* Delete Confirmation */}
             {confirmDeleteId === note.id && (
               <div className="mx-3 my-1 p-2.5 rounded-md bg-[#ff5f56]/10 border border-[#ff5f56]/20">
-                <p className="text-[11px] text-[var(--text-primary)] mb-2">Hapus permanen?</p>
+                <p className="text-[11px] text-[var(--text-primary)] mb-2">{t('confirmDelete')}</p>
                 <div className="flex gap-2">
-                  <button onClick={() => { onDeleteNotePermanently(confirmDeleteId); setConfirmDeleteId(null); }} className="flex-1 text-[11px] bg-[#ff5f56] text-white rounded py-1">Ya</button>
-                  <button onClick={() => setConfirmDeleteId(null)} className="flex-1 text-[11px] bg-[var(--bg-tertiary)] text-[var(--text-primary)] rounded py-1">Batal</button>
+                  <button onClick={() => { onDeleteNotePermanently(confirmDeleteId); setConfirmDeleteId(null); }} className="flex-1 text-[11px] bg-[#ff5f56] text-white rounded py-1">{t('yes')}</button>
+                  <button onClick={() => setConfirmDeleteId(null)} className="flex-1 text-[11px] bg-[var(--bg-tertiary)] text-[var(--text-primary)] rounded py-1">{t('cancel')}</button>
                 </div>
               </div>
             )}
           </React.Fragment>
         ))}
         {filteredNotes.length === 0 && (
-          <div className="py-4 text-center text-xs text-[var(--text-muted)]">Tidak ada catatan yang ditemukan.</div>
+          <div className="py-4 text-center text-xs text-[var(--text-muted)]">{t('noNotesFound')}</div>
         )}
       </div>
 
@@ -378,12 +380,12 @@ const Sidebar = ({ notes, activeId, onOpenNote, onTrashNote, onArchiveNote, onRe
         <div className="px-5 py-3 border-t border-[var(--border)] bg-[var(--bg-secondary)] min-w-[260px]">
           {confirmEmptyTrash ? (
             <div className="flex gap-2">
-              <button onClick={() => { onEmptyTrash(); setConfirmEmptyTrash(false); }} className="flex-1 text-[11px] font-medium bg-[#ff5f56] text-white rounded py-1.5">Kosongkan Semua</button>
-              <button onClick={() => setConfirmEmptyTrash(false)} className="flex-1 text-[11px] font-medium bg-[var(--bg-tertiary)] text-[var(--text-primary)] rounded py-1.5">Batal</button>
+              <button onClick={() => { onEmptyTrash(); setConfirmEmptyTrash(false); }} className="flex-1 text-[11px] font-medium bg-[#ff5f56] text-white rounded py-1.5">{t('emptyTrashAll')}</button>
+              <button onClick={() => setConfirmEmptyTrash(false)} className="flex-1 text-[11px] font-medium bg-[var(--bg-tertiary)] text-[var(--text-primary)] rounded py-1.5">{t('cancel')}</button>
             </div>
           ) : (
             <button onClick={() => setConfirmEmptyTrash(true)} className="w-full py-1.5 text-[11px] font-medium text-[#ff5f56] hover:bg-[#ff5f56]/10 rounded border border-transparent transition-colors flex items-center justify-center gap-1.5">
-              <Trash2 size={12} /> Kosongkan Sampah
+              <Trash2 size={12} /> {t('emptyTrash')}
             </button>
           )}
         </div>
@@ -392,7 +394,7 @@ const Sidebar = ({ notes, activeId, onOpenNote, onTrashNote, onArchiveNote, onRe
       {/* Footer Sidebar */}
       <div className="px-5 h-[38px] shrink-0 border-t border-[var(--border)] flex justify-between items-center min-w-[260px]">
         <div className="flex gap-2">
-          <button onClick={onOpenSettings} className="text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors" title="Settings">
+          <button onClick={onOpenSettings} className="text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors" title={t('settings')}>
             <Settings size={15} strokeWidth={2} />
           </button>
           <button onClick={onOpenShortcuts} className="text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors" title="Shortcuts">
@@ -401,11 +403,11 @@ const Sidebar = ({ notes, activeId, onOpenNote, onTrashNote, onArchiveNote, onRe
         </div>
         <div className="flex items-center gap-1.5 text-[10px] text-[var(--text-muted)]">
           <div className="w-1.5 h-1.5 rounded-full bg-green-500"></div>
-          <span>Sinkronisasi aktif</span>
+          <span>{t('syncActive')}</span>
         </div>
       </div>
     </aside>
   );
 };
 
-export default Sidebar;
+export default React.memo(Sidebar);
