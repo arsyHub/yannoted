@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
 import PasswordModal from './PasswordModal';
 import { useLanguage } from '../contexts/LanguageContext';
+import { 
+  Settings, X, Globe, Key, ShieldCheck, Pencil, Trash2, 
+  Cloud, Database, Upload, Download, Lock, ChevronDown, ChevronRight
+} from 'lucide-react';
 
 const SettingsModal = ({ 
   onClose, 
@@ -82,206 +86,294 @@ const SettingsModal = ({
     return false;
   };
 
+  // Common UI classes
+  const cardClass = "bg-[#16181D] border border-white/5 rounded-xl p-4 mb-3";
+  const iconBoxClass = "w-8 h-8 rounded-xl flex items-center justify-center shrink-0";
+  const titleClass = "text-sm font-semibold text-white/90";
+  const descClass = "text-[11px] text-gray-400 mt-0.5";
+  const inputClass = "w-full bg-[#0F1115] text-white/90 border border-white/10 rounded-lg px-3 py-2 outline-none focus:border-[var(--accent)] text-xs mb-2 transition-colors placeholder:text-gray-600";
+
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className="bg-[var(--bg-secondary)] p-6 rounded-lg shadow-xl w-96 border border-[var(--border)]">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-semibold text-[var(--text-primary)] flex items-center">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-              <circle cx="12" cy="12" r="3"></circle>
-              <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"></path>
-            </svg>
-            {t('settings')}
-          </h2>
-          <button onClick={onClose} className="text-[var(--text-muted)] hover:text-[var(--text-primary)]">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto">
+      <div className="bg-[#0F1115] rounded-2xl shadow-2xl w-full max-w-lg border border-white/5 flex flex-col my-auto max-h-[90vh]">
+        
+        {/* Header */}
+        <div className="flex justify-between items-start p-5 pb-2 shrink-0">
+          <div className="flex gap-3 items-center">
+            <div className={`w-10 h-10 rounded-xl bg-[var(--accent)]/10 flex items-center justify-center text-[var(--accent)]`}>
+              <Settings size={20} strokeWidth={1.5} />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-white">Pengaturan</h2>
+              <p className="text-xs text-gray-400 mt-0.5">Kelola preferensi akun dan data Anda</p>
+            </div>
+          </div>
+          <button onClick={onClose} className="w-7 h-7 rounded-full bg-white/5 flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/10 transition-colors">
+            <X size={16} />
           </button>
         </div>
-        
-        <div className="mb-6 border-b border-[var(--border)] pb-4">
-          <h3 className="text-sm font-medium text-[var(--text-primary)] mb-2">{t('language')}</h3>
-          <select 
-            value={language}
-            onChange={(e) => changeLanguage(e.target.value)}
-            className="w-full bg-[var(--bg-primary)] text-[var(--text-primary)] border border-[var(--border)] rounded px-3 py-1.5 outline-none focus:border-[var(--accent)] text-sm cursor-pointer"
-          >
-            <option value="id">Bahasa Indonesia</option>
-            <option value="en">English</option>
-          </select>
-        </div>
 
-        <div className="mb-4">
-          <h3 className="text-sm font-medium text-[var(--text-primary)] mb-2 border-b border-[var(--border)] pb-1">Master Password</h3>
+        {/* Content */}
+        <div className="p-5 pt-4 overflow-y-auto custom-scrollbar flex-1">
           
-          {hasMasterPassword ? (
-            activeTab === 'status' ? (
-              <div className="bg-[var(--bg-tertiary)] p-3 rounded border border-[var(--border)]">
-                <div className="flex items-center text-green-500 mb-4 text-sm font-medium">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="mr-2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-                  Master Password Aktif
-                </div>
-                <div className="flex flex-col gap-2">
+          {/* Language Card */}
+          <div className={cardClass}>
+            <div className="flex gap-3 mb-3">
+              <div className={`${iconBoxClass} bg-[var(--accent)]/10 text-[var(--accent)]`}>
+                <Globe size={16} />
+              </div>
+              <div>
+                <h3 className={titleClass}>Bahasa (Language)</h3>
+                <p className={descClass}>Pilih bahasa yang digunakan di aplikasi.</p>
+              </div>
+            </div>
+            <div className="relative">
+              <select 
+                value={language}
+                onChange={(e) => changeLanguage(e.target.value)}
+                className="w-full bg-[#1A1C23] text-white border border-white/5 rounded-xl px-3 py-2.5 outline-none focus:border-[var(--accent)] text-xs cursor-pointer appearance-none transition-colors hover:bg-[#1E2128]"
+              >
+                <option value="id">Bahasa Indonesia</option>
+                <option value="en">English</option>
+              </select>
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                <ChevronDown size={14} />
+              </div>
+            </div>
+          </div>
+
+          {/* Master Password Card */}
+          <div className={cardClass}>
+            <div className="flex gap-3 mb-3">
+              <div className={`${iconBoxClass} bg-[var(--accent)]/10 text-[var(--accent)]`}>
+                <Key size={16} />
+              </div>
+              <div>
+                <h3 className={titleClass}>Master Password</h3>
+                <p className={descClass}>Kelola master password akun Anda.</p>
+              </div>
+            </div>
+
+            {hasMasterPassword ? (
+              activeTab === 'status' ? (
+                <div className="flex flex-col gap-1">
+                  <div className="bg-[#10b981]/5 border border-[#10b981]/20 rounded-xl p-3 flex justify-between items-center mb-1">
+                    <div className="flex gap-3 items-center">
+                      <div className={`${iconBoxClass} bg-[#10b981]/10 text-[#10b981]`}>
+                        <ShieldCheck size={16} />
+                      </div>
+                      <div>
+                        <div className="text-[#10b981] font-medium text-[13px]">Master Password Aktif</div>
+                        <div className="text-gray-400 text-[11px] mt-0.5">Akun Anda terlindungi dengan baik.</div>
+                      </div>
+                    </div>
+                    <div className="px-2.5 py-0.5 rounded-full bg-[#10b981]/10 text-[#10b981] text-[10px] font-semibold border border-[#10b981]/20">
+                      Aktif
+                    </div>
+                  </div>
+
                   <button 
                     onClick={() => { setActiveTab('change'); setErrorMsg(''); }}
-                    className="w-full py-2 bg-[var(--accent)]/10 text-[var(--accent)] hover:bg-[var(--accent)]/20 rounded transition-colors text-sm font-medium"
+                    className="p-3 flex justify-between items-center cursor-pointer hover:bg-white/5 rounded-xl transition-colors w-full text-left group"
                   >
-                    Ubah Master Password
+                    <div className="flex gap-3 items-center">
+                      <div className={`${iconBoxClass} bg-[var(--accent)]/10 text-[var(--accent)]`}>
+                        <Pencil size={16} />
+                      </div>
+                      <div>
+                        <div className="text-[var(--accent)] font-medium text-[13px]">Ubah Master Password</div>
+                        <div className="text-gray-400 text-[11px] mt-0.5">Perbarui master password secara berkala.</div>
+                      </div>
+                    </div>
+                    <ChevronRight size={14} className="text-gray-500 group-hover:text-gray-300 transition-colors" />
                   </button>
+
+                  <div className="h-[1px] bg-white/5 w-full my-1"></div>
+
                   <button 
                     onClick={() => setShowRemoveConfirm(true)}
-                    className="w-full py-2 bg-[#ff5f56]/10 text-[#ff5f56] hover:bg-[#ff5f56]/20 rounded transition-colors text-sm font-medium"
+                    className="p-3 flex justify-between items-center cursor-pointer hover:bg-white/5 rounded-xl transition-colors w-full text-left group"
                   >
-                    Hapus Master Password
+                    <div className="flex gap-3 items-center">
+                      <div className={`${iconBoxClass} bg-[#ef4444]/10 text-[#ef4444]`}>
+                        <Trash2 size={16} />
+                      </div>
+                      <div>
+                        <div className="text-[#ef4444] font-medium text-[13px]">Hapus Master Password</div>
+                        <div className="text-gray-400 text-[11px] mt-0.5">Tindakan ini tidak dapat dibatalkan.</div>
+                      </div>
+                    </div>
+                    <ChevronRight size={14} className="text-gray-500 group-hover:text-gray-300 transition-colors" />
                   </button>
                 </div>
-              </div>
-            ) : activeTab === 'change' ? (
-              <form onSubmit={handleChangePassword} className="bg-[var(--bg-tertiary)] p-3 rounded border border-[var(--border)]">
-                <p className="text-xs text-[var(--text-muted)] mb-3 leading-relaxed">
-                  Mengubah Master Password akan memperbarui semua catatan yang terkunci.
+              ) : activeTab === 'change' ? (
+                <form onSubmit={handleChangePassword} className="bg-[#1A1C23] p-3 rounded-xl border border-white/5">
+                  <p className="text-[11px] text-gray-400 mb-3">
+                    Mengubah Master Password akan memperbarui semua catatan yang terkunci.
+                  </p>
+                  <input 
+                    type="password"
+                    value={currentPassword}
+                    onChange={(e) => { setCurrentPassword(e.target.value); setErrorMsg(''); }}
+                    placeholder="Password saat ini"
+                    className={inputClass}
+                    required
+                  />
+                  <input 
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => { setNewPassword(e.target.value); setErrorMsg(''); }}
+                    placeholder="Password baru"
+                    className={inputClass}
+                    required
+                  />
+                  <input 
+                    type="password"
+                    value={confirmNewPassword}
+                    onChange={(e) => { setConfirmNewPassword(e.target.value); setErrorMsg(''); }}
+                    placeholder="Konfirmasi password baru"
+                    className={inputClass}
+                    required
+                  />
+                  <input 
+                    type="text"
+                    value={changeHint}
+                    onChange={(e) => setChangeHint(e.target.value)}
+                    placeholder="Hint baru (opsional)"
+                    className={inputClass}
+                  />
+                  {errorMsg && (
+                    <div className="text-[#ef4444] text-[11px] mb-2 font-medium text-center">
+                      {errorMsg}
+                    </div>
+                  )}
+                  <div className="flex gap-2 mt-1">
+                    <button 
+                      type="button" 
+                      onClick={() => setActiveTab('status')}
+                      className="flex-1 py-2 text-white bg-white/5 hover:bg-white/10 rounded-lg transition-colors text-xs font-semibold"
+                    >
+                      Batal
+                    </button>
+                    <button 
+                      type="submit" 
+                      className="flex-1 py-2 bg-[var(--accent)] text-white hover:opacity-90 rounded-lg transition-opacity text-xs font-semibold shadow-[0_0_15px_rgba(139,92,246,0.3)]"
+                    >
+                      Simpan
+                    </button>
+                  </div>
+                </form>
+              ) : null
+            ) : (
+              <form onSubmit={handleSetPassword} className="bg-[#1A1C23] p-3 rounded-xl border border-white/5">
+                <p className="text-[11px] text-gray-400 mb-3">
+                  Buat satu Master Password untuk mengunci catatan Anda. 
                 </p>
+                
                 <input 
                   type="password"
-                  value={currentPassword}
-                  onChange={(e) => { setCurrentPassword(e.target.value); setErrorMsg(''); }}
-                  placeholder="Password saat ini"
-                  className="w-full mb-2 bg-[var(--bg-primary)] text-[var(--text-primary)] border border-[var(--border)] rounded px-3 py-1.5 outline-none focus:border-[var(--accent)] text-sm"
+                  value={password}
+                  onChange={(e) => { setPassword(e.target.value); setErrorMsg(''); }}
+                  placeholder="Master Password baru"
+                  className={inputClass}
                   required
                 />
-                <div className="h-[1px] bg-[var(--border)] my-3"></div>
+                
                 <input 
                   type="password"
-                  value={newPassword}
-                  onChange={(e) => { setNewPassword(e.target.value); setErrorMsg(''); }}
-                  placeholder="Password baru"
-                  className="w-full mb-2 bg-[var(--bg-primary)] text-[var(--text-primary)] border border-[var(--border)] rounded px-3 py-1.5 outline-none focus:border-[var(--accent)] text-sm"
+                  value={confirmPassword}
+                  onChange={(e) => { setConfirmPassword(e.target.value); setErrorMsg(''); }}
+                  placeholder="Konfirmasi password"
+                  className={inputClass}
                   required
                 />
-                <input 
-                  type="password"
-                  value={confirmNewPassword}
-                  onChange={(e) => { setConfirmNewPassword(e.target.value); setErrorMsg(''); }}
-                  placeholder="Konfirmasi password baru"
-                  className="w-full mb-2 bg-[var(--bg-primary)] text-[var(--text-primary)] border border-[var(--border)] rounded px-3 py-1.5 outline-none focus:border-[var(--accent)] text-sm"
-                  required
-                />
+
                 <input 
                   type="text"
-                  value={changeHint}
-                  onChange={(e) => setChangeHint(e.target.value)}
-                  placeholder="Hint baru (opsional)"
-                  className="w-full mb-3 bg-[var(--bg-primary)] text-[var(--text-primary)] border border-[var(--border)] rounded px-3 py-1.5 outline-none focus:border-[var(--accent)] text-sm"
+                  value={hint}
+                  onChange={(e) => setHint(e.target.value)}
+                  placeholder="Hint (opsional)"
+                  className={inputClass}
                 />
+                
                 {errorMsg && (
-                  <div className="text-[#ff5f56] text-xs mb-3 font-medium text-center">
+                  <div className="text-[#ef4444] text-[11px] mb-2 font-medium text-center">
                     {errorMsg}
                   </div>
                 )}
-                <div className="flex gap-2">
-                  <button 
-                    type="button" 
-                    onClick={() => setActiveTab('status')}
-                    className="flex-1 py-2 text-[var(--text-primary)] hover:bg-[var(--bg-primary)] rounded transition-colors text-sm font-medium"
-                  >
-                    Batal
-                  </button>
-                  <button 
-                    type="submit" 
-                    className="flex-1 py-2 bg-[var(--accent)] text-white hover:opacity-90 rounded transition-opacity text-sm font-medium"
-                  >
-                    Ubah
-                  </button>
-                </div>
+                
+                <button 
+                  type="submit" 
+                  className="w-full py-2 bg-[var(--accent)] text-white hover:opacity-90 rounded-lg transition-opacity text-xs font-semibold shadow-[0_0_15px_rgba(139,92,246,0.3)] mt-1"
+                >
+                  Buat Master Password
+                </button>
               </form>
-            ) : null
-          ) : (
-            <form onSubmit={handleSetPassword} className="bg-[var(--bg-tertiary)] p-3 rounded border border-[var(--border)]">
-              <p className="text-xs text-[var(--text-muted)] mb-3 leading-relaxed">
-                Buat satu Master Password untuk mengunci catatan Anda. 
-              </p>
-              
-              <input 
-                type="password"
-                value={password}
-                onChange={(e) => { setPassword(e.target.value); setErrorMsg(''); }}
-                placeholder="Master Password baru"
-                className="w-full mb-2 bg-[var(--bg-primary)] text-[var(--text-primary)] border border-[var(--border)] rounded px-3 py-1.5 outline-none focus:border-[var(--accent)] text-sm"
-                required
-              />
-              
-              <input 
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => { setConfirmPassword(e.target.value); setErrorMsg(''); }}
-                placeholder="Konfirmasi password"
-                className="w-full mb-2 bg-[var(--bg-primary)] text-[var(--text-primary)] border border-[var(--border)] rounded px-3 py-1.5 outline-none focus:border-[var(--accent)] text-sm"
-                required
-              />
+            )}
+          </div>
 
-              <input 
-                type="text"
-                value={hint}
-                onChange={(e) => setHint(e.target.value)}
-                placeholder="Hint (opsional)"
-                className="w-full mb-3 bg-[var(--bg-primary)] text-[var(--text-primary)] border border-[var(--border)] rounded px-3 py-1.5 outline-none focus:border-[var(--accent)] text-sm"
-              />
-              
-              {errorMsg && (
-                <div className="text-[#ff5f56] text-xs mb-3 font-medium text-center">
-                  {errorMsg}
+          {/* Data & Backup Card */}
+          <div className={cardClass}>
+            <div className="flex gap-3 mb-3">
+              <div className={`${iconBoxClass} bg-[var(--accent)]/10 text-[var(--accent)]`}>
+                <Cloud size={16} />
+              </div>
+              <div>
+                <h3 className={titleClass}>Data & Backup</h3>
+                <p className={descClass}>Kelola data Anda dengan aman.</p>
+              </div>
+            </div>
+            
+            <div className="bg-[#1A1C23] p-3 rounded-xl border border-white/5">
+              <div className="flex gap-3 mb-4">
+                <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 bg-[var(--accent)]/5 text-[var(--accent)]`}>
+                  <Database size={14} />
                 </div>
-              )}
+                <div>
+                  <h4 className="text-[13px] font-semibold text-white/90">Backup & Pulihkan Data</h4>
+                  <p className="text-[11px] text-gray-400 mt-0.5">Export cadangan atau import dari file backup.</p>
+                </div>
+              </div>
               
-              <button 
-                type="submit" 
-                className="w-full py-2 bg-[var(--accent)] text-white hover:opacity-90 rounded transition-opacity text-sm font-medium"
-              >
-                Buat Master Password
-              </button>
-            </form>
-          )}
-        </div>
-
-        <div className="mb-4">
-          <h3 className="text-sm font-medium text-[var(--text-primary)] mb-2 border-b border-[var(--border)] pb-1">Data & Backup</h3>
-          <div className="bg-[var(--bg-tertiary)] p-3 rounded border border-[var(--border)] flex flex-col gap-2">
-            <p className="text-xs text-[var(--text-muted)] mb-1 leading-relaxed">
-              Export data Anda untuk cadangan, atau import data dari file backup Yannoted.
-            </p>
-            <div className="flex gap-2">
-              <button 
-                onClick={onExportBackup}
-                className="flex-1 py-2 bg-[var(--accent)] text-white hover:opacity-90 rounded transition-opacity text-sm font-medium"
-              >
-                Export Backup
-              </button>
-              <button 
-                onClick={async () => {
-                  if (!window.electronAPI) return;
-                  const filters = [{ name: 'Yannoted Backup', extensions: ['json'] }, { name: 'All Files', extensions: ['*'] }];
-                  const filePath = await window.electronAPI.openFileDialog(filters);
-                  if (filePath) {
-                    try {
-                      const content = await window.electronAPI.readFile(filePath);
-                      const backupData = JSON.parse(content);
-                      if (backupData.version) {
-                        onInitRestore(backupData);
-                        onClose();
-                      } else {
-                        window.electronAPI.showMessage({ type: 'error', title: 'Error', message: 'Format backup tidak valid.' });
+              <div className="flex gap-2">
+                <button 
+                  onClick={onExportBackup}
+                  className="flex-1 py-2 bg-[var(--accent)] text-white hover:opacity-90 rounded-xl transition-all text-xs font-semibold flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(139,92,246,0.2)]"
+                >
+                  <Upload size={14} />
+                  Export
+                </button>
+                <button 
+                  onClick={async () => {
+                    if (!window.electronAPI) return;
+                    const filters = [{ name: 'Yannoted Backup', extensions: ['json'] }, { name: 'All Files', extensions: ['*'] }];
+                    const filePath = await window.electronAPI.openFileDialog(filters);
+                    if (filePath) {
+                      try {
+                        const content = await window.electronAPI.readFile(filePath);
+                        const backupData = JSON.parse(content);
+                        if (backupData.version) {
+                          onInitRestore(backupData);
+                          onClose();
+                        } else {
+                          window.electronAPI.showMessage({ type: 'error', title: 'Error', message: 'Format backup tidak valid.' });
+                        }
+                      } catch (err) {
+                        window.electronAPI.showMessage({ type: 'error', title: 'Error', message: 'Gagal membaca file backup.' });
                       }
-                    } catch (err) {
-                      window.electronAPI.showMessage({ type: 'error', title: 'Error', message: 'Gagal membaca file backup.' });
                     }
-                  }
-                }}
-                className="flex-1 py-2 text-[var(--text-primary)] bg-[var(--bg-primary)] border border-[var(--border)] hover:bg-[var(--bg-tertiary)] rounded transition-colors text-sm font-medium"
-              >
-                Restore Data
-              </button>
+                  }}
+                  className="flex-1 py-2 text-white bg-transparent border border-white/10 hover:bg-white/5 hover:border-white/20 rounded-xl transition-all text-xs font-semibold flex items-center justify-center gap-2"
+                >
+                  <Download size={14} />
+                  Restore
+                </button>
+              </div>
             </div>
           </div>
+
         </div>
+
       </div>
 
       {showRemoveConfirm && (
