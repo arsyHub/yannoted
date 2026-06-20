@@ -35,10 +35,10 @@ ipcMain.handle('store-get', (_, key) => store.get(key));
 ipcMain.handle('store-set', (_, key, value) => store.set(key, value));
 ipcMain.handle('store-delete', (_, key) => store.delete(key));
 
-ipcMain.handle('dialog-open-file', async () => {
+ipcMain.handle('dialog-open-file', async (_, filters) => {
   const { canceled, filePaths } = await dialog.showOpenDialog({
     properties: ['openFile'],
-    filters: [{ name: 'Text Files', extensions: ['txt'] }, { name: 'All Files', extensions: ['*'] }]
+    filters: filters || [{ name: 'Text Files', extensions: ['txt'] }, { name: 'All Files', extensions: ['*'] }]
   });
   if (!canceled) {
     return filePaths[0];
@@ -46,10 +46,10 @@ ipcMain.handle('dialog-open-file', async () => {
   return null;
 });
 
-ipcMain.handle('dialog-save-file', async (_, defaultPath) => {
+ipcMain.handle('dialog-save-file', async (_, defaultPath, filters) => {
   const { canceled, filePath } = await dialog.showSaveDialog({
     defaultPath,
-    filters: [{ name: 'Text Files', extensions: ['txt'] }, { name: 'All Files', extensions: ['*'] }]
+    filters: filters || [{ name: 'Text Files', extensions: ['txt'] }, { name: 'All Files', extensions: ['*'] }]
   });
   if (!canceled) {
     return filePath;

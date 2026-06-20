@@ -3,10 +3,10 @@ import { stripHtml } from '../utils/stringUtils';
 import { Plus, Search, ListFilter, Check, Lock, Pin, Archive, Trash2, RotateCcw, XCircle, Settings, HelpCircle, FileText, FolderOpen, Save } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 
-const Sidebar = ({ notes, activeId, onOpenNote, onTrashNote, onArchiveNote, onRestoreNote, onDeleteNotePermanently, onEmptyTrash, onTogglePin, onReorderNotes, onAdd, onRename, onOpenSettings, onOpenShortcuts, isOpen, sessionUnlockedIds, onOpenFile, onSaveFile }) => {
+const Sidebar = ({ notes, folders, activeId, onOpenNote, onTrashNote, onArchiveNote, onRestoreNote, onDeleteNotePermanently, onEmptyTrash, onTogglePin, onReorderNotes, onAdd, onRename, onOpenSettings, onOpenShortcuts, isOpen, sessionUnlockedIds, onOpenFile, onSaveFile, onAddFolder, onRenameFolder, onDeleteFolder, onMoveNoteToFolder }) => {
   const { t } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
-  const [currentView, setCurrentView] = useState('active'); // 'active', 'archived', 'trash'
+  const [currentView, setCurrentView] = useState('active'); // 'active', 'archived', 'trash', 'folder:id'
   const [sortOrder, setSortOrder] = useState('custom'); // 'custom', 'updatedAt', 'createdAt', 'alpha'
   const [showSortMenu, setShowSortMenu] = useState(false);
   const [editingId, setEditingId] = useState(null);
@@ -14,6 +14,12 @@ const Sidebar = ({ notes, activeId, onOpenNote, onTrashNote, onArchiveNote, onRe
   const [draggedIdx, setDraggedIdx] = useState(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
   const [confirmEmptyTrash, setConfirmEmptyTrash] = useState(false);
+
+  // Folder states
+  const [isAddingFolder, setIsAddingFolder] = useState(false);
+  const [newFolderName, setNewFolderName] = useState('');
+  const [editingFolderId, setEditingFolderId] = useState(null);
+  const [editFolderName, setEditFolderName] = useState('');
   const inputRef = useRef(null);
   const searchInputRef = useRef(null);
 
@@ -57,7 +63,14 @@ const Sidebar = ({ notes, activeId, onOpenNote, onTrashNote, onArchiveNote, onRe
 
   let processedNotes = notes.filter(note => {
     const status = note.status || 'active';
-    return status === currentView;
+    if (currentView === 'active') return status === 'active' && !note.folderId;
+    if (currentView === 'archived') return status === 'archived';
+    if (currentView === 'trash') return status === 'trash';
+    if (currentView.startsWith('folder:')) {
+      const folderId = currentView.split(':')[1];
+      return status === 'active' && note.folderId === folderId;
+    }
+    return false;
   });
 
   if (sortOrder === 'updatedAt') {
@@ -106,14 +119,17 @@ const Sidebar = ({ notes, activeId, onOpenNote, onTrashNote, onArchiveNote, onRe
 
   const isDndEnabled = searchTerm.trim() === '' && currentView === 'active' && sortOrder === 'custom';
 
-  const handleDragStart = (e, idx) => {
-    if (!isDndEnabled) return;
-    setDraggedIdx(idx);
-    e.dataTransfer.effectAllowed = "move";
+  const handleDragStart = (e, idx, noteId) => {
+    e.dataTransfer.setData("text/plain", noteId);
+    if (isDndEnabled) {
+      setDraggedIdx(idx);
+      e.dataTransfer.effectAllowed = "move";
+    } else {
+      e.dataTransfer.effectAllowed = "copyMove";
+    }
   };
 
   const handleDragOver = (e) => {
-    if (!isDndEnabled) return;
     e.preventDefault();
   };
 
@@ -129,7 +145,15 @@ const Sidebar = ({ notes, activeId, onOpenNote, onTrashNote, onArchiveNote, onRe
     setDraggedIdx(null);
   };
 
-  const activeCount = notes.filter(n => (n.status || 'active') === 'active').length;
+  const handleAddNote = () => {
+    if (currentView.startsWith('folder:')) {
+      onAdd(currentView.split(':')[1]);
+    } else {
+      onAdd();
+    }
+  };
+
+  const activeCount = notes.filter(n => (n.status || 'active') === 'active' && !n.folderId).length;
   const archivedCount = notes.filter(n => n.status === 'archived').length;
   const trashCount = notes.filter(n => n.status === 'trash').length;
 
@@ -184,7 +208,7 @@ const Sidebar = ({ notes, activeId, onOpenNote, onTrashNote, onArchiveNote, onRe
       <div className="px-5 pb-5 min-w-[260px]">
         <div className="flex rounded-md overflow-hidden bg-[var(--accent)] text-white h-[36px]">
           <button
-            onClick={onAdd}
+            onClick={handleAddNote}
             className="flex-1 flex items-center justify-center gap-2 text-[13px] font-medium transition-colors hover:brightness-110"
           >
             <Plus size={15} strokeWidth={2.5} />
@@ -237,6 +261,14 @@ const Sidebar = ({ notes, activeId, onOpenNote, onTrashNote, onArchiveNote, onRe
             <button
               key={tab.id}
               onClick={() => setCurrentView(tab.id)}
+              onDragOver={tab.id === 'active' ? handleDragOver : undefined}
+              onDrop={(e) => {
+                if (tab.id === 'active') {
+                  e.preventDefault();
+                  const noteId = e.dataTransfer.getData("text/plain");
+                  if (noteId) onMoveNoteToFolder(noteId, null);
+                }
+              }}
               className={`group flex items-center justify-between py-1.5 px-3 rounded-md text-[13px] transition-colors ${isActive
                 ? 'bg-[var(--bg-tertiary)] text-[var(--text-primary)] font-medium'
                 : 'text-[var(--text-muted)] hover:bg-[var(--bg-tertiary)]/50 hover:text-[var(--text-primary)]'
@@ -254,10 +286,103 @@ const Sidebar = ({ notes, activeId, onOpenNote, onTrashNote, onArchiveNote, onRe
         })}
       </div>
 
+      {/* Folders Section */}
+      <div className="px-5 mt-2 mb-2 min-w-[260px] flex justify-between items-center text-[10px] font-semibold text-[var(--text-muted)] uppercase tracking-widest">
+        <span>Folders</span>
+        <button onClick={() => setIsAddingFolder(true)} className="hover:text-[var(--text-primary)] transition-colors"><Plus size={14}/></button>
+      </div>
+      <div className="px-3 min-w-[260px] flex flex-col gap-0.5 pb-2">
+        {isAddingFolder && (
+           <div className="flex items-center px-3 py-1.5 bg-[var(--bg-tertiary)] rounded-md border border-[var(--accent)]">
+             <FolderOpen size={16} className="text-[var(--text-muted)] mr-3 shrink-0" />
+             <input
+               autoFocus
+               type="text"
+               value={newFolderName}
+               onChange={e => setNewFolderName(e.target.value)}
+               onKeyDown={e => {
+                 if (e.key === 'Enter') {
+                   if (newFolderName.trim()) onAddFolder(newFolderName.trim());
+                   setIsAddingFolder(false);
+                   setNewFolderName('');
+                 }
+                 if (e.key === 'Escape') {
+                   setIsAddingFolder(false);
+                   setNewFolderName('');
+                 }
+               }}
+               onBlur={() => {
+                 setIsAddingFolder(false);
+                 setNewFolderName('');
+               }}
+               className="bg-transparent outline-none text-[13px] text-[var(--text-primary)] w-full"
+               placeholder="Nama folder..."
+             />
+           </div>
+        )}
+        {folders?.map(folder => {
+          const isActive = currentView === `folder:${folder.id}`;
+          const folderNoteCount = notes.filter(n => (n.status || 'active') === 'active' && n.folderId === folder.id).length;
+          return (
+            <div 
+              key={folder.id} 
+              className={`group relative flex items-center py-1.5 px-3 rounded-md text-[13px] transition-colors cursor-pointer ${isActive ? 'bg-[var(--bg-tertiary)] text-[var(--text-primary)] font-medium' : 'text-[var(--text-muted)] hover:bg-[var(--bg-tertiary)]/50 hover:text-[var(--text-primary)]'}`}
+              onClick={() => {
+                if (currentView === `folder:${folder.id}`) {
+                  setCurrentView('active');
+                } else {
+                  setCurrentView(`folder:${folder.id}`);
+                }
+              }}
+              onDragOver={handleDragOver}
+              onDrop={(e) => {
+                 e.preventDefault();
+                 const noteId = e.dataTransfer.getData("text/plain");
+                 if (noteId) onMoveNoteToFolder(noteId, folder.id);
+              }}
+            >
+              <div className="flex items-center gap-3 flex-1 min-w-0">
+                <FolderOpen size={16} strokeWidth={2} className={isActive ? 'text-[var(--text-primary)] shrink-0' : 'text-[var(--text-muted)] group-hover:text-[var(--text-primary)] shrink-0'} />
+                {editingFolderId === folder.id ? (
+                  <input
+                    autoFocus
+                    type="text"
+                    value={editFolderName}
+                    onChange={e => setEditFolderName(e.target.value)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter') {
+                        if (editFolderName.trim()) onRenameFolder(folder.id, editFolderName.trim());
+                        setEditingFolderId(null);
+                      }
+                      if (e.key === 'Escape') setEditingFolderId(null);
+                    }}
+                    onBlur={() => setEditingFolderId(null)}
+                    className="bg-[var(--bg-primary)] border border-[var(--border)] rounded px-1 outline-none text-[13px] text-[var(--text-primary)] w-full"
+                    onClick={e => e.stopPropagation()}
+                  />
+                ) : (
+                  <span className="truncate" onDoubleClick={(e) => { e.stopPropagation(); setEditingFolderId(folder.id); setEditFolderName(folder.name); }}>{folder.name}</span>
+                )}
+              </div>
+              {!editingFolderId && (
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className="text-[12px] text-[var(--text-muted)] transition-colors">
+                    {folderNoteCount > 0 ? folderNoteCount : ''}
+                  </span>
+                  <div className="opacity-0 group-hover:opacity-100 flex gap-1 items-center">
+                    <button onClick={(e) => { e.stopPropagation(); onDeleteFolder(folder.id); if(currentView === `folder:${folder.id}`) setCurrentView('active'); }} className="p-1 text-[var(--text-muted)] hover:text-[#ff5f56] rounded transition-colors" title="Hapus Folder"><Trash2 size={13}/></button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )
+        })}
+      </div>
+
       {/* Notes List Header */}
       <div className="px-5 py-3 mt-4 min-w-[260px] flex justify-between items-center text-[10px] font-semibold text-[var(--text-muted)] uppercase tracking-widest">
         <span>{t('notes')}</span>
-        <button onClick={onAdd} className="hover:text-[var(--text-primary)] transition-colors"><Plus size={14}/></button>
+        <button onClick={handleAddNote} className="hover:text-[var(--text-primary)] transition-colors"><Plus size={14}/></button>
       </div>
 
       {/* Notes List */}
@@ -265,8 +390,8 @@ const Sidebar = ({ notes, activeId, onOpenNote, onTrashNote, onArchiveNote, onRe
         {filteredNotes.map((note, idx) => (
           <React.Fragment key={note.id}>
             <div
-              draggable={isDndEnabled && editingId !== note.id}
-              onDragStart={(e) => handleDragStart(e, idx)}
+              draggable={editingId !== note.id}
+              onDragStart={(e) => handleDragStart(e, idx, note.id)}
               onDragOver={handleDragOver}
               onDrop={(e) => handleDrop(e, idx)}
               onDragEnd={handleDragEnd}
@@ -310,7 +435,7 @@ const Sidebar = ({ notes, activeId, onOpenNote, onTrashNote, onArchiveNote, onRe
               
               {/* Note Actions */}
               <div className="flex items-center gap-1">
-                {currentView === 'active' && (
+                {(currentView === 'active' || currentView.startsWith('folder:')) && (
                   <>
                     <button
                       onClick={(e) => { e.stopPropagation(); onTrashNote(note.id); }}
@@ -333,6 +458,15 @@ const Sidebar = ({ notes, activeId, onOpenNote, onTrashNote, onArchiveNote, onRe
                     >
                       <Pin size={13} className={note.isPinned ? "fill-current" : ""} />
                     </button>
+                    {currentView.startsWith('folder:') && (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); onMoveNoteToFolder(note.id, null); }}
+                        className="opacity-0 group-hover:opacity-100 p-1 text-[var(--text-muted)] hover:text-orange-400 rounded transition-colors"
+                        title="Keluarkan dari folder"
+                      >
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 3H6a2 2 0 0 0-2 2v14c0 1.1.9 2 2 2h4M16 17l5-5-5-5M21 12H9"/></svg>
+                      </button>
+                    )}
                   </>
                 )}
                 {currentView === 'archived' && (

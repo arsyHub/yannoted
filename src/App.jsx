@@ -11,6 +11,7 @@ import ShortcutsModal from './components/ShortcutsModal';
 import FindReplacePanel from './components/FindReplacePanel';
 import StatusBar from './components/StatusBar';
 import ContextMenu from './components/ContextMenu';
+import RestoreModal from './components/RestoreModal';
 
 import { useNotes } from './hooks/useNotes';
 import { useTheme } from './hooks/useTheme';
@@ -22,6 +23,7 @@ import { LanguageProvider } from './contexts/LanguageContext';
 function App() {
   const {
     notes,
+    folders,
     openTabIds,
     activeId,
     setActiveId,
@@ -46,7 +48,13 @@ function App() {
     sessionUnlockedIds,
     openExternalFile,
     saveNoteToFile,
-    closeAllTabs
+    closeAllTabs,
+    addFolder,
+    renameFolder,
+    deleteFolder,
+    moveNoteToFolder,
+    exportBackup,
+    importBackup
   } = useNotes();
 
   const { toggleTheme } = useTheme();
@@ -68,6 +76,7 @@ function App() {
   const [focusMode, setFocusMode] = useState(false);
   const [contextMenu, setContextMenu] = useState(null); // { x, y }
   const [showMasterPasswordPrompt, setShowMasterPasswordPrompt] = useState(false);
+  const [pendingBackupData, setPendingBackupData] = useState(null);
 
   // Master Password State
   const [masterPasswordHash, setMasterPasswordHash] = useState(null);
@@ -279,6 +288,7 @@ function App() {
           <Sidebar
             isOpen={sidebarOpen}
             notes={notes}
+            folders={folders}
             activeId={activeId}
             onOpenNote={openNote}
             onTrashNote={trashNote}
@@ -297,6 +307,10 @@ function App() {
             onSaveFile={() => {
               if (editor) saveNoteToFile(activeId, editor.getText());
             }}
+            onAddFolder={addFolder}
+            onRenameFolder={renameFolder}
+            onDeleteFolder={deleteFolder}
+            onMoveNoteToFolder={moveNoteToFolder}
           />
         )}
 
@@ -431,6 +445,26 @@ function App() {
           onSetMasterPassword={handleSetMasterPassword}
           onRemoveMasterPassword={handleRemoveMasterPassword}
           onChangeMasterPassword={handleChangeMasterPassword}
+          onExportBackup={exportBackup}
+          onInitRestore={(data) => setPendingBackupData(data)}
+        />
+      )}
+
+      {pendingBackupData && (
+        <RestoreModal
+          backupData={pendingBackupData}
+          currentHash={masterPasswordHash}
+          onConfirm={(result) => {
+             const { folderName, backupPassword } = result;
+             const newFolderId = importBackup(pendingBackupData, folderName, backupPassword, masterPassword);
+             setPendingBackupData(null);
+             window.electronAPI?.showMessage({
+                type: 'info',
+                title: 'Restore Berhasil',
+                message: `Berhasil merestore ${pendingBackupData.notes?.length || 0} catatan ke dalam folder "${folderName}".`
+             });
+          }}
+          onCancel={() => setPendingBackupData(null)}
         />
       )}
 

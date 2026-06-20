@@ -8,7 +8,9 @@ const SettingsModal = ({
   masterPasswordHint,
   onSetMasterPassword, 
   onRemoveMasterPassword,
-  onChangeMasterPassword 
+  onChangeMasterPassword,
+  onExportBackup,
+  onInitRestore
 }) => {
   const { language, changeLanguage, t } = useLanguage();
   const [activeTab, setActiveTab] = useState('status'); // 'status', 'change', 'remove'
@@ -238,6 +240,47 @@ const SettingsModal = ({
               </button>
             </form>
           )}
+        </div>
+
+        <div className="mb-4">
+          <h3 className="text-sm font-medium text-[var(--text-primary)] mb-2 border-b border-[var(--border)] pb-1">Data & Backup</h3>
+          <div className="bg-[var(--bg-tertiary)] p-3 rounded border border-[var(--border)] flex flex-col gap-2">
+            <p className="text-xs text-[var(--text-muted)] mb-1 leading-relaxed">
+              Export data Anda untuk cadangan, atau import data dari file backup Yannoted.
+            </p>
+            <div className="flex gap-2">
+              <button 
+                onClick={onExportBackup}
+                className="flex-1 py-2 bg-[var(--accent)] text-white hover:opacity-90 rounded transition-opacity text-sm font-medium"
+              >
+                Export Backup
+              </button>
+              <button 
+                onClick={async () => {
+                  if (!window.electronAPI) return;
+                  const filters = [{ name: 'Yannoted Backup', extensions: ['json'] }, { name: 'All Files', extensions: ['*'] }];
+                  const filePath = await window.electronAPI.openFileDialog(filters);
+                  if (filePath) {
+                    try {
+                      const content = await window.electronAPI.readFile(filePath);
+                      const backupData = JSON.parse(content);
+                      if (backupData.version) {
+                        onInitRestore(backupData);
+                        onClose();
+                      } else {
+                        window.electronAPI.showMessage({ type: 'error', title: 'Error', message: 'Format backup tidak valid.' });
+                      }
+                    } catch (err) {
+                      window.electronAPI.showMessage({ type: 'error', title: 'Error', message: 'Gagal membaca file backup.' });
+                    }
+                  }
+                }}
+                className="flex-1 py-2 text-[var(--text-primary)] bg-[var(--bg-primary)] border border-[var(--border)] hover:bg-[var(--bg-tertiary)] rounded transition-colors text-sm font-medium"
+              >
+                Restore Data
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 

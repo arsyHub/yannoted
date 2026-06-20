@@ -6,6 +6,7 @@ import { encryptContent, decryptContent } from '../utils/crypto';
 
 export function useNotes() {
   const [notes, setNotes] = useState([]);
+  const [folders, setFolders] = useState([]);
   const [openTabIds, setOpenTabIds] = useState([]);
   const [activeId, setActiveId] = useState(null);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -25,8 +26,13 @@ export function useNotes() {
   useEffect(() => {
     const loadNotes = async () => {
       const storedNotes = await storage.get('notes');
+      const storedFolders = await storage.get('folders');
       const lastActiveId = await storage.get('activeId');
       const storedOpenTabIds = await storage.get('openTabIds');
+
+      if (storedFolders) {
+        setFolders(storedFolders);
+      }
 
       if (storedNotes && storedNotes.length > 0) {
         const initialNotes = storedNotes.map(n => ({
@@ -37,6 +43,7 @@ export function useNotes() {
           filePath: n.filePath || null,
           isDirty: n.isDirty || false,
           encryptedContent: n.encryptedContent || null,
+          folderId: typeof n.folderId === 'string' ? n.folderId : null,
         }));
         setNotes(initialNotes);
 
@@ -70,6 +77,7 @@ export function useNotes() {
   // Effect 1: Persist state to storage — encrypt locked notes before saving
   useEffect(() => {
     if (isLoaded) {
+      storage.set('folders', folders);
       const notesForStorage = notes.map(note => {
         if (note.isLocked) {
           if (sessionPasswordsRef.current.has(note.id)) {
@@ -95,7 +103,7 @@ export function useNotes() {
         storage.set('activeId', activeId);
       }
     }
-  }, [notes, activeId, openTabIds, isLoaded]);
+  }, [notes, folders, activeId, openTabIds, isLoaded]);
 
   // Effect 2: File watching — only re-run when the set of filePaths changes
   const filePathsKey = notes
@@ -161,7 +169,7 @@ export function useNotes() {
     return () => unsubscribe();
   }, []);
 
-  const createNewNote = (existingNotes = []) => {
+  const createNewNote = (existingNotes = [], folderId = null) => {
     const now = Date.now();
     return {
       id: uuid(),
@@ -175,16 +183,18 @@ export function useNotes() {
       status: 'active', // 'active', 'archived', 'trash'
       filePath: null,
       isDirty: false,
+      folderId: folderId,
     };
   };
 
   // Fix 1.1: No more nested setState — compute new state, then set all at once
-  const addNote = () => {
-    const newNote = createNewNote(notes);
-    const lastPinnedIdx = notes.findLastIndex(n => n.isPinned);
-    const next = [...notes];
+  const addNote = (folderId = null) => {
+    const actualFolderId = typeof folderId === 'string' ? folderId : null;
+    const newNote = createNewNote(notesRef.current, actualFolderId);
+    const currentNotes = notesRef.current;
+    const lastPinnedIdx = currentNotes.findLastIndex(n => n.isPinned);
+    const next = [...currentNotes];
     next.splice(lastPinnedIdx + 1, 0, newNote);
-
     setNotes(next);
     setOpenTabIds(prev => [...prev, newNote.id]);
     setActiveId(newNote.id);
@@ -533,8 +543,137 @@ export function useNotes() {
     }
   }, []);
 
+  const addFolder = (name) => {
+    const newFolder = { id: uuid(), name, createdAt: Date.now() };
+    setFolders(prev => [...prev, newFolder]);
+  };
+
+  const renameFolder = (id, newName) => {
+    setFolders(prev => prev.map(f => f.id === id ? { ...f, name: newName } : f));
+  };
+
+  const deleteFolder = (id) => {
+    setFolders(prev => prev.filter(f => f.id !== id));
+    
+    // Move all notes in this folder to trash
+    const folderNotes = notesRef.current.filter(n => n.folderId === id);
+    if (folderNotes.length === 0) return;
+    
+    const noteIdsToTrash = new Set(folderNotes.map(n => n.id));
+
+    setNotes(prev => prev.map(n => 
+      noteIdsToTrash.has(n.id)
+        ? { ...n, status: 'trash', folderId: null, isPinned: false, updatedAt: Date.now() } 
+        : n
+    ));
+
+    const remainingTabs = openTabIds.filter(tabId => !noteIdsToTrash.has(tabId));
+    setOpenTabIds(remainingTabs);
+
+    if (noteIdsToTrash.has(activeId)) {
+      const remainingNotes = notesRef.current.filter(n => !noteIdsToTrash.has(n.id) && n.status !== 'trash');
+      if (remainingTabs.length > 0) {
+        const openNotes = remainingNotes.filter(n => remainingTabs.includes(n.id));
+        if (openNotes.length > 0) {
+          const newest = openNotes.reduce((a, b) => (a.createdAt > b.createdAt ? a : b));
+          setActiveId(newest.id);
+        } else {
+          setActiveId(remainingTabs[0] || null);
+        }
+      } else {
+        setActiveId(null);
+      }
+    }
+  };
+
+  const moveNoteToFolder = (noteId, folderId) => {
+    setNotes(prev => prev.map(n => n.id === noteId ? { ...n, folderId, updatedAt: Date.now() } : n));
+  };
+
+  const exportBackup = useCallback(async () => {
+    if (!window.electronAPI) return;
+    const storedNotes = await storage.get('notes');
+    const storedFolders = await storage.get('folders');
+    const masterPasswordHash = await storage.get('masterPasswordHash');
+    
+    const backupData = {
+      version: 1,
+      notes: storedNotes || [],
+      folders: storedFolders || [],
+      masterPasswordHash: masterPasswordHash || null,
+      timestamp: Date.now()
+    };
+    
+    const jsonString = JSON.stringify(backupData, null, 2);
+    
+    const filters = [{ name: 'Yannoted Backup', extensions: ['json'] }, { name: 'All Files', extensions: ['*'] }];
+    const filePath = await window.electronAPI.saveFileDialog('yannoted-backup.json', filters);
+    
+    if (filePath) {
+      const success = await window.electronAPI.writeFile(filePath, jsonString);
+      if (success) {
+        window.electronAPI.showMessage({
+          type: 'info',
+          title: 'Backup Berhasil',
+          message: 'Data berhasil diekspor ke:\n' + filePath
+        });
+      } else {
+         window.electronAPI.showMessage({
+          type: 'error',
+          title: 'Backup Gagal',
+          message: 'Gagal menyimpan file backup.'
+        });
+      }
+    }
+  }, []);
+
+  const importBackup = useCallback((backupData, folderName, oldPassword, currentPassword) => {
+    const newFolderId = uuid();
+    const newFolder = { id: newFolderId, name: folderName, createdAt: Date.now() };
+    
+    const importedNotes = [];
+    
+    for (const note of (backupData.notes || [])) {
+      const newNoteId = uuid();
+      let newNote = {
+        ...note,
+        id: newNoteId,
+        folderId: newFolderId,
+        filePath: null,
+      };
+      
+      if (newNote.isLocked && newNote.encryptedContent) {
+        if (oldPassword && backupData.masterPasswordHash) {
+           const decrypted = decryptContent(newNote.encryptedContent, oldPassword);
+           if (decrypted !== null) {
+              if (currentPassword) {
+                 newNote.encryptedContent = encryptContent(decrypted, currentPassword);
+              } else {
+                 newNote.isLocked = false;
+                 newNote.encryptedContent = null;
+                 newNote.content = decrypted;
+              }
+           } else {
+              // Gagal dekripsi, anggap rusak, buang kunci (atau biarkan, tapi isLocked = false, content kosong)
+              newNote.isLocked = false;
+              newNote.encryptedContent = null;
+              newNote.content = '--- FAILED TO DECRYPT ---';
+           }
+        }
+      }
+      
+      importedNotes.push(newNote);
+    }
+    
+    setFolders(prev => [...prev, newFolder]);
+    setNotes(prev => [...importedNotes, ...prev]);
+    
+    return newFolderId;
+  }, []);
+
   return {
     notes,
+    folders,
     openTabIds,
     activeId,
     setActiveId,
@@ -560,5 +699,11 @@ export function useNotes() {
     sessionUnlockedIds,
     openExternalFile,
     saveNoteToFile,
+    addFolder,
+    renameFolder,
+    deleteFolder,
+    moveNoteToFolder,
+    exportBackup,
+    importBackup,
   };
 }
