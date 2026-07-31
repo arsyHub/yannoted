@@ -9,6 +9,8 @@ const ShortcutsModal = ({ onClose }) => {
         { keys: ["Ctrl", "I"], desc: "Miring (Italic)" },
         { keys: ["Ctrl", "U"], desc: "Garis Bawah (Underline)" },
         { keys: ["Ctrl", "Shift", "X"], desc: "Coret (Strikethrough)" },
+        { keys: ["Ctrl", "Shift", "H"], desc: "Sorot (Highlight)" },
+        { keys: ["Ctrl", "Enter"], desc: "Baris Baru di Bawah" },
         { keys: ["Alt", "↑ / ↓"], desc: "Pindah Baris ke Atas/Bawah" },
         { keys: ["Ctrl", "X"], desc: "Cut Baris (Tanpa Blok)" },
       ]
@@ -29,9 +31,11 @@ const ShortcutsModal = ({ onClose }) => {
         { keys: ["###", "Spasi"], desc: "Heading 3" },
         { keys: ["*", "Spasi"], desc: "Daftar Tak Berurutan (Bullet)" },
         { keys: ["1.", "Spasi"], desc: "Daftar Berurutan (Numbered)" },
+        { keys: ["[ ]", "Spasi"], desc: "Checklist (Task List)" },
         { keys: [">", "Spasi"], desc: "Kutipan (Blockquote)" },
         { keys: ["```", "Enter"], desc: "Blok Kode (Code Block)" },
         { keys: ["`", "teks", "`"], desc: "Kode Baris (Inline Code)" },
+        { keys: ["/"], desc: "Menu Cepat (Slash Commands)" },
       ]
     }
   ];

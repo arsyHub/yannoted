@@ -32,6 +32,7 @@ import { BracketMatch } from '../extensions/BracketMatch';
 import SlashCommand from '../extensions/SlashCommand';
 import { MoveLine } from '../extensions/MoveLine';
 import { CutEmptyLine } from '../extensions/CutEmptyLine';
+import { CtrlEnter } from '../extensions/CtrlEnter';
 import { useLanguage } from '../contexts/LanguageContext';
 
 const lowlight = createLowlight();
@@ -64,6 +65,24 @@ const MenuButton = ({ onClick, isActive, title, children }) => (
     {children}
   </button>
 );
+
+const CopyMenuButton = ({ t }) => {
+  const [copied, setCopied] = React.useState(false);
+  const handleCopy = () => {
+    document.execCommand('copy');
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+  return (
+    <MenuButton onClick={handleCopy} isActive={false} title={t('copy') || 'Copy'}>
+      {copied ? (
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#a6e3a1" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+      ) : (
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"></path></svg>
+      )}
+    </MenuButton>
+  );
+};
 
 const Editor = ({ note, onContentChange, onEditorReady, isSessionUnlocked }) => {
   const { t } = useLanguage();
@@ -155,6 +174,7 @@ const Editor = ({ note, onContentChange, onEditorReady, isSessionUnlocked }) => 
       SlashCommand,
       MoveLine,
       CutEmptyLine,
+      CtrlEnter,
       Table.configure({
         resizable: true,
       }),
@@ -163,6 +183,77 @@ const Editor = ({ note, onContentChange, onEditorReady, isSessionUnlocked }) => 
       TableCell,
     ],
     editorProps: {
+      clipboardTextSerializer: (slice) => {
+        const processNode = (node, listState) => {
+          if (node.isText) return node.text;
+          if (node.type.name === 'hardBreak') return '\n';
+
+          let childText = '';
+
+          if (node.type.name === 'orderedList') {
+            let index = node.attrs.start || 1;
+            node.forEach((child) => {
+              childText += processNode(child, { type: 'ordered', index: index++ });
+            });
+            return childText;
+          }
+
+          if (node.type.name === 'bulletList') {
+            node.forEach((child) => {
+              childText += processNode(child, { type: 'bullet' });
+            });
+            return childText;
+          }
+
+          if (node.type.name === 'taskList') {
+            node.forEach((child) => {
+              childText += processNode(child, { type: 'task' });
+            });
+            return childText;
+          }
+
+          if (node.type.name === 'listItem' || node.type.name === 'taskItem') {
+            let prefix = '';
+            if (listState) {
+              if (listState.type === 'ordered') prefix = `${listState.index}. `;
+              else if (listState.type === 'bullet') prefix = '• ';
+              else if (listState.type === 'task') {
+                const checked = node.attrs.checked ? '[x]' : '[ ]';
+                prefix = `${checked} `;
+              }
+            }
+            node.forEach((child) => {
+              childText += processNode(child, null);
+            });
+            
+            let trimmed = childText.trim();
+            if (trimmed.includes('\n')) {
+              // Indent subsequent lines in a multi-line list item or nested list
+              trimmed = trimmed.replace(/\n/g, '\n  ');
+            }
+            return prefix + trimmed + '\n';
+          }
+
+          if (node.isBlock) {
+            node.forEach((child) => {
+              childText += processNode(child, null);
+            });
+            return childText + '\n';
+          }
+
+          node.forEach((child) => {
+            childText += processNode(child, null);
+          });
+          return childText;
+        };
+
+        let result = '';
+        slice.content.forEach((node) => {
+          result += processNode(node, null);
+        });
+
+        return result.replace(/\n{3,}/g, '\n\n').trim();
+      },
       handlePaste: (view, event) => {
         const clipboardData = event.clipboardData;
         if (!clipboardData) return false;
@@ -411,6 +502,8 @@ const Editor = ({ note, onContentChange, onEditorReady, isSessionUnlocked }) => 
             <MenuButton onClick={() => editor.chain().focus().toggleSpoiler().run()} isActive={editor.isActive('spoiler')} title={t('spoiler')}>
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
             </MenuButton>
+            <div className="w-px h-4 bg-[var(--border)] mx-0.5"></div>
+            <CopyMenuButton t={t} />
           </div>
         </BubbleMenu>
       )}
