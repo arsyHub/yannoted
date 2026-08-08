@@ -8,7 +8,68 @@ const FindReplacePanel = ({ editor, onClose }) => {
   const [currentIdx, setCurrentIdx] = useState(-1);
   const [matches, setMatches] = useState([]);
   const [showReplace, setShowReplace] = useState(false);
+  const initialScrollTopRef = useRef(null);
+  const initialSelectionRef = useRef(null);
   const findInputRef = useRef(null);
+
+  // Scroll the .search-highlight-current element into view inside the editor's scroll container
+  const scrollToCurrentHighlight = useCallback(() => {
+    if (!editor) return;
+    // Wait for ProseMirror to render the decoration, then scroll the DOM element
+    requestAnimationFrame(() => {
+      const editorDom = editor.view.dom;
+      // The scroll container is the ancestor with overflow-y: auto
+      const scrollContainer = editorDom.closest('.overflow-y-auto');
+      if (!scrollContainer) return;
+
+      const highlightEl = scrollContainer.querySelector('.search-highlight-current');
+      if (highlightEl) {
+        // Calculate position relative to scroll container
+        const containerRect = scrollContainer.getBoundingClientRect();
+        const highlightRect = highlightEl.getBoundingClientRect();
+
+        const isVisible =
+          highlightRect.top >= containerRect.top &&
+          highlightRect.bottom <= containerRect.bottom;
+
+        if (!isVisible) {
+          // Scroll so the highlight is roughly centered in the container
+          const targetScrollTop =
+            scrollContainer.scrollTop +
+            (highlightRect.top - containerRect.top) -
+            containerRect.height / 2 +
+            highlightRect.height / 2;
+
+          scrollContainer.scrollTo({
+            top: Math.max(0, targetScrollTop),
+            behavior: 'smooth',
+          });
+        }
+      }
+    });
+  }, [editor]);
+
+  // Restore scroll to the initial position (when search term is cleared)
+  const restoreInitialPosition = useCallback(() => {
+    if (!editor) return;
+    const editorDom = editor.view.dom;
+    const scrollContainer = editorDom.closest('.overflow-y-auto');
+    if (!scrollContainer) return;
+
+    if (initialSelectionRef.current) {
+      try {
+        editor.commands.setTextSelection(initialSelectionRef.current);
+      } catch (e) {
+        // selection might be invalid, ignore
+      }
+    }
+    if (initialScrollTopRef.current !== null) {
+      scrollContainer.scrollTo({
+        top: initialScrollTopRef.current,
+        behavior: 'smooth',
+      });
+    }
+  }, [editor]);
 
   // Shared close handler — always clears highlights
   const handleClose = useCallback(() => {
@@ -20,10 +81,21 @@ const FindReplacePanel = ({ editor, onClose }) => {
     onClose();
   }, [editor, onClose]);
 
-  // Focus input when panel opens
+  // Focus input when panel opens & save initial position
   useEffect(() => {
     findInputRef.current?.focus();
-  }, []);
+    if (editor) {
+      initialSelectionRef.current = {
+        from: editor.state.selection.from,
+        to: editor.state.selection.to,
+      };
+      const editorDom = editor.view.dom;
+      const scrollContainer = editorDom.closest('.overflow-y-auto');
+      if (scrollContainer) {
+        initialScrollTopRef.current = scrollContainer.scrollTop;
+      }
+    }
+  }, [editor]);
 
   // Handle Escape to close
   useEffect(() => {
@@ -82,14 +154,19 @@ const FindReplacePanel = ({ editor, onClose }) => {
     if (results.length > 0) {
       dispatchHighlights(results, newIdx);
       editor?.commands.setTextSelection({ from: results[0].from, to: results[0].to });
+      scrollToCurrentHighlight();
     } else {
       dispatchHighlights([], -1);
+      if (!findTerm && editor) {
+        restoreInitialPosition();
+      }
     }
   }, [findTerm, caseSensitive]);
 
   const selectMatch = (match) => {
     if (!editor || !match) return;
     editor.commands.setTextSelection({ from: match.from, to: match.to });
+    scrollToCurrentHighlight();
   };
 
   const goNext = () => {
@@ -98,6 +175,7 @@ const FindReplacePanel = ({ editor, onClose }) => {
     setCurrentIdx(next);
     dispatchHighlights(matches, next);
     editor?.commands.setTextSelection({ from: matches[next].from, to: matches[next].to });
+    scrollToCurrentHighlight();
   };
 
   const goPrev = () => {
@@ -106,6 +184,7 @@ const FindReplacePanel = ({ editor, onClose }) => {
     setCurrentIdx(prev);
     dispatchHighlights(matches, prev);
     editor?.commands.setTextSelection({ from: matches[prev].from, to: matches[prev].to });
+    scrollToCurrentHighlight();
   };
 
   const replaceOne = () => {
