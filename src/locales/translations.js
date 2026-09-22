@@ -137,6 +137,21 @@ export const translations = {
     cancel: "Batal",
     unlock: "Buka Kunci",
     incorrectPassword: "Password salah. Silakan coba lagi.",
+
+    // Image Preview Modal
+    imagePreview: "Pratinjau Gambar",
+    zoomIn: "Perbesar (+)",
+    zoomOut: "Perkecil (-)",
+    resetZoom: "Reset Zoom (100%)",
+    fitScreen: "Sesuaikan Layar",
+    rotateClockwise: "Putar 90° (R)",
+    rotateCounterClockwise: "Putar Berlawanan Jarum Jam",
+    flipHorizontal: "Balik Horizontal",
+    copyImage: "Salin Gambar",
+    imageCopied: "Gambar Berhasil Disalin!",
+    downloadImage: "Unduh Gambar",
+    close: "Tutup (Esc)",
+    doubleClickToPreview: "Klik dua kali untuk pratinjau",
   },
   en: {
     // Sidebar
@@ -276,5 +291,20 @@ export const translations = {
     cancel: "Cancel",
     unlock: "Unlock",
     incorrectPassword: "Incorrect password. Please try again.",
+
+    // Image Preview Modal
+    imagePreview: "Image Preview",
+    zoomIn: "Zoom In (+)",
+    zoomOut: "Zoom Out (-)",
+    resetZoom: "Reset Zoom (100%)",
+    fitScreen: "Fit to Screen",
+    rotateClockwise: "Rotate 90° (R)",
+    rotateCounterClockwise: "Rotate Counter-Clockwise",
+    flipHorizontal: "Flip Horizontal",
+    copyImage: "Copy Image",
+    imageCopied: "Image Copied!",
+    downloadImage: "Download Image",
+    close: "Close (Esc)",
+    doubleClickToPreview: "Double-click to preview",
   }
 };

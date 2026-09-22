@@ -529,3 +529,39 @@ ul[data-type="taskList"] input[type="checkbox"] {
   background: rgba(139, 92, 246, 0.15); /* Accent color transparent */
   pointer-events: none;
 }
+
+/* Fade-in Animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.18s ease-out forwards;
+}
+
+/* Editor Image Styles & Cursor Cue */
+.ProseMirror img {
+  cursor: zoom-in;
+  border-radius: 4px;
+  transition: opacity 0.15s ease;
+}
+
+.ProseMirror img:hover {
+  opacity: 0.92;
+}
+
+.ProseMirror [data-resize-image-ui] img {
+  cursor: pointer !important;
+}
+
+/* Electron no-drag overrides for modal overlays and controls */
+.no-drag,
+.no-drag * {
+  -webkit-app-region: no-drag !important;
+}
+

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useEditor, EditorContent, ReactNodeViewRenderer } from '@tiptap/react';
 import { BubbleMenu } from '@tiptap/react/menus';
 import StarterKit from '@tiptap/starter-kit';
@@ -34,6 +34,7 @@ import { MoveLine } from '../extensions/MoveLine';
 import { CutEmptyLine } from '../extensions/CutEmptyLine';
 import { CtrlEnter } from '../extensions/CtrlEnter';
 import { useLanguage } from '../contexts/LanguageContext';
+import ImagePreviewModal from './ImagePreviewModal';
 
 const lowlight = createLowlight();
 lowlight.register('javascript', javascript);
@@ -88,6 +89,7 @@ const Editor = ({ note, onContentChange, onEditorReady, isSessionUnlocked }) => 
   const { t } = useLanguage();
   const tRef = useRef(t);
   const scrollRef = useRef(null);
+  const [previewImage, setPreviewImage] = useState(null);
 
   const updateTimeoutRef = useRef(null);
   const pendingHtmlRef = useRef(null);
@@ -127,6 +129,20 @@ const Editor = ({ note, onContentChange, onEditorReady, isSessionUnlocked }) => 
       editor.commands.focus();
       // Menggunakan API ProseMirror untuk scroll ke posisi kursor/seleksi saat ini
       editor.view.dispatch(editor.state.tr.scrollIntoView());
+    }
+  };
+
+  const handleEditorDoubleClick = (e) => {
+    const target = e.target;
+    if (target && target.tagName === 'IMG') {
+      if (target.closest('[data-resize-image-ui]')) return;
+      e.preventDefault();
+      e.stopPropagation();
+      setPreviewImage({
+        src: target.currentSrc || target.src,
+        alt: target.alt || '',
+        title: target.title || '',
+      });
     }
   };
 
@@ -183,6 +199,18 @@ const Editor = ({ note, onContentChange, onEditorReady, isSessionUnlocked }) => 
       TableCell,
     ],
     editorProps: {
+      handleDoubleClickOn: (view, pos, node, nodePos, event, direct) => {
+        if (node && (node.type.name === 'imageResize' || node.type.name === 'image')) {
+          event.preventDefault();
+          setPreviewImage({
+            src: node.attrs.src,
+            alt: node.attrs.alt || '',
+            title: node.attrs.title || '',
+          });
+          return true;
+        }
+        return false;
+      },
       clipboardTextSerializer: (slice) => {
         const processNode = (node, listState) => {
           if (node.isText) return node.text;
@@ -554,6 +582,7 @@ const Editor = ({ note, onContentChange, onEditorReady, isSessionUnlocked }) => 
       <div
         ref={scrollRef}
         onScroll={handleScroll}
+        onDoubleClick={handleEditorDoubleClick}
         className="flex-1 bg-[var(--bg-primary)] text-[var(--text-primary)] overflow-y-auto custom-scrollbar px-12 py-10"
       >
         <div className="max-w-3xl mx-auto h-full">
@@ -592,6 +621,13 @@ const Editor = ({ note, onContentChange, onEditorReady, isSessionUnlocked }) => 
           </svg>
         </button>
       </div>
+
+      {previewImage && (
+        <ImagePreviewModal
+          image={previewImage}
+          onClose={() => setPreviewImage(null)}
+        />
+      )}
     </>
   );
 };
